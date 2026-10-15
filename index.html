@@ -3,31 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ONCOcusto</title>
+<meta name="author" content="Isabela Santos">
+<title>OncoCusto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f6f3; --surface:#fff; --surface-2:#eef1ec; --line:#dde2da;
-  --text:#1c2421; --muted:#5d6a64; --accent:#616fb3; --accent-soft:#e9ebf6;
-  --green:#80bd42; --green-ink:#4f7d22; --green-soft:#eaf4df;
-  --warn:#8a5a00; --warn-soft:#fbf1dc; --radius:12px;
-  --shadow:0 1px 2px rgba(20,30,25,.05),0 4px 16px rgba(20,30,25,.05);
+  --bg:#FFFBEE; --surface:#fff; --surface-2:#E3F5F4; --line:#EEE6D0;
+  --text:#2B2B2B; --muted:#5B5650; --accent:#F2416B; --accent-ink:#C7254F; --accent-soft:#E3F5F4;
+  --green:#F2416B; --green-ink:#2E6E6C; --green-soft:#D3F0EF;
+  --sun:#FAD86B; --warn:#8A6400; --warn-dot:#F5C94A; --warn-soft:#FFF1C4; --pink-soft:#FDE6EC; --radius:12px;
+  --shadow:0 1px 2px rgba(91,86,80,.06),0 6px 20px rgba(91,86,80,.06);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121715; --surface:#1a201d; --surface-2:#222a26; --line:#2f3934;
-    --text:#e6ebe8; --muted:#9aa8a1; --accent:#8e99dc; --accent-soft:#262a44;
-    --green:#94cc5a; --green-ink:#a9d97a; --green-soft:#24331a;
-    --warn:#f0c065; --warn-soft:#352b17; --shadow:none;
+    --bg:#1F1D1B; --surface:#2B2B2B; --surface-2:#253634; --line:#423D37;
+  --text:#FFFBEE; --muted:#CFC7B8; --accent:#F7849A; --accent-ink:#F7849A; --accent-soft:#233A39;
+  --green:#F7849A; --green-ink:#9EDCDB; --green-soft:#23403F;
+  --sun:#F5C94A; --warn:#F5C94A; --warn-dot:#F5C94A; --warn-soft:#3A3220; --pink-soft:#41262D; --shadow:none;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121715; --surface:#1a201d; --surface-2:#222a26; --line:#2f3934;
-  --text:#e6ebe8; --muted:#9aa8a1; --accent:#8e99dc; --accent-soft:#262a44;
-  --green:#94cc5a; --green-ink:#a9d97a; --green-soft:#24331a;
-  --warn:#f0c065; --warn-soft:#352b17; --shadow:none;
+  --bg:#1F1D1B; --surface:#2B2B2B; --surface-2:#253634; --line:#423D37;
+  --text:#FFFBEE; --muted:#CFC7B8; --accent:#F7849A; --accent-ink:#F7849A; --accent-soft:#233A39;
+  --green:#F7849A; --green-ink:#9EDCDB; --green-soft:#23403F;
+  --sun:#F5C94A; --warn:#F5C94A; --warn-dot:#F5C94A; --warn-soft:#3A3220; --pink-soft:#41262D; --shadow:none;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -39,13 +40,14 @@ button{cursor:pointer}
 
 /* Topo */
 header.top{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:linear-gradient(90deg,#F2416B,#F7849A 30%,#FAD86B 62%,#9EDCDB)}
 .top-in{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
 .wordmark{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .wordmark .o{color:var(--green)}
-.wordmark .c{color:var(--accent)}
+.wordmark .c{color:var(--text)}
 .brand-sub{display:block;color:var(--muted);font-size:12px;margin-top:3px}
-.brand-sub a{color:var(--accent);text-decoration:none;font-weight:600}
+.brand-sub a{color:var(--accent-ink);text-decoration:none;font-weight:600}
 .brand small{display:block;color:var(--muted);font-size:12px}
 .top-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .pill{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
@@ -71,7 +73,7 @@ main{min-width:0}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* Cabeçalho de tela */
-.eyebrow{color:var(--accent);font-weight:600;font-size:13px}
+.eyebrow{color:var(--accent-ink);font-weight:600;font-size:13px}
 .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:20px}
 .page-head h1{font-size:26px;margin:2px 0 4px;letter-spacing:-.01em}
 .page-head p{margin:0;color:var(--muted)}
@@ -93,12 +95,12 @@ main{min-width:0}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
 button.card{text-align:left;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s}
 button.card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.card .ic{width:36px;height:36px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.card .ic{width:36px;height:36px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center}
 .card h3{margin:4px 0 0;font-size:16px}
 .card p{margin:0;color:var(--muted);font-size:14px}
-.card.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.card.primary{background:var(--sun);border-color:var(--sun);color:#2B2B2B}
 .card.primary p{color:inherit;opacity:.85}
-.card.primary .ic{background:rgba(255,255,255,.18);color:inherit}
+.card.primary .ic{background:rgba(255,255,255,.55);color:#2B2B2B}
 .section-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:30px 0 12px}
 .section-title h2{font-size:16px;margin:0}
 .section-title span{color:var(--muted);font-size:13px}
@@ -115,11 +117,11 @@ button.card:hover{border-color:var(--accent);transform:translateY(-1px)}
 .f{display:flex;flex-direction:column;gap:5px;min-width:0}
 .f.full{grid-column:1/-1}
 .f > label:first-child,.lbl{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
-.req{color:var(--accent)}
+.req{color:var(--accent-ink)}
 .opt{font-weight:400;color:var(--muted);font-size:12px}
 .help{font-size:12px;color:var(--muted)}
 input[type=text],input[type=date],input[type=number],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--pink-soft)}
 input:disabled,select:disabled{opacity:.5}
 .checks{display:flex;gap:4px 14px;flex-wrap:wrap}
 .check{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer}
@@ -141,22 +143,22 @@ input:disabled,select:disabled{opacity:.5}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;font-weight:500}
 .btn:hover{background:var(--surface-2)}
 .btn.sm{padding:5px 10px;font-size:12px}
-.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn.pri:hover{filter:brightness(1.07)}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;background:var(--bg);cursor:pointer;user-select:none}
-.tag.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}
-.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:13px;text-decoration:underline;cursor:pointer}
+.tag.on{background:var(--pink-soft);border-color:var(--accent);color:var(--text)}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent-ink);font-size:13px;text-decoration:underline;cursor:pointer}
 
 /* (?) ajuda */
 .qm{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-size:11px;font-weight:700;display:inline-grid;place-items:center;padding:0;line-height:1}
 .qm:hover,.qm.open{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .tip{display:none;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}
 .tip.open{display:block}
-.tip a{color:var(--accent)}
+.tip a{color:var(--accent-ink)}
 .siglas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;margin:0;padding:0;list-style:none}
 .siglas li{display:flex;gap:8px}
-.siglas b{min-width:26px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent)}
+.siglas b{min-width:26px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent-ink)}
 
 /* Parâmetros */
 .params{display:flex;flex-direction:column}
@@ -178,7 +180,7 @@ th{font-weight:600;font-size:12px;color:var(--muted);background:var(--surface-2)
 td.val{text-align:right;font-variant-numeric:tabular-nums}
 tr.warn td{background:var(--warn-soft)}
 .ph{color:var(--muted)}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:6px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn-dot);margin-right:6px}
 .ok{color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .filters select{width:auto;min-width:130px;padding:7px 10px;font-size:13px}
@@ -190,12 +192,12 @@ tr.warn td{background:var(--warn-soft)}
 /* Arquivos */
 .drop{border:2px dashed var(--line);border-radius:var(--radius);padding:34px 18px;text-align:center;background:var(--bg);cursor:pointer;transition:border-color .15s}
 .drop:hover{border-color:var(--accent)}
-.drop svg{color:var(--accent)}
+.drop svg{color:var(--accent-ink)}
 .drop b{display:block;margin:8px 0 2px}
 .drop span{color:var(--muted);font-size:13px}
 .file{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .file:last-child{border-bottom:0}
-.file .fic{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none;font-size:11px;font-weight:700}
+.file .fic{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;flex:none;font-size:11px;font-weight:700}
 .file div{min-width:0;flex:1}
 .file b{display:block;font-size:14px;font-weight:500}
 .file small{color:var(--muted);font-size:12px}
@@ -236,7 +238,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <span><a class="wordmark" href="#inicio" data-v="inicio" style="text-decoration:none"><span class="o">ONCO</span><span class="c">custo</span></a><span class="brand-sub">Custos pela tabela SIGTAP</span></span>
+      <span><a class="wordmark" href="#inicio" data-v="inicio" style="text-decoration:none"><span class="o">Onco</span><span class="c">Custo</span></a><span class="brand-sub">Custos pela tabela SIGTAP · por <a href="https://github.com/isabelagsantos" target="_blank" rel="noopener">Isabela Santos</a></span></span>
     </div>
     <div class="top-right">
       <span class="pill hide-sm">Projeto de exemplo · fulano_de_tal_imp</span>
@@ -385,14 +387,14 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
 
       <div class="panel">
         <div class="body draft">
-          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center">✎</span>
+          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center">✎</span>
           <div><b>Projeto de exemplo A</b><small>Última alteração: — · — entradas · usuário: —</small></div>
           <button class="btn">Excluir</button><button class="btn pri" data-v="procedimentos">Continuar</button>
         </div>
       </div>
       <div class="panel">
         <div class="body draft">
-          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center">✎</span>
+          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center">✎</span>
           <div><b>Projeto de exemplo B</b><small>Última alteração: — · — entradas · usuário: —</small></div>
           <button class="btn">Excluir</button><button class="btn pri" data-v="procedimentos">Continuar</button>
         </div>
@@ -675,7 +677,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
 </div>
 
 <footer>
-  <span><b>ONCOcusto</b></span>
+  <span><b>OncoCusto</b> · Idealização, propriedade e manutenção: <a href="https://github.com/isabelagsantos" target="_blank" rel="noopener">Isabela Santos</a></span>
   <span>Site estático · cálculo no navegador</span>
   <span>SIGTAP —</span><span>BPS —</span><span>Versão do site —</span>
 </footer>
