@@ -1,0 +1,24 @@
+{
+  "bps": {
+    "periodo": "jan/2026 a out/2026",
+    "data_geracao": "2026-10-16",
+    "n_compras": 10480,
+    "n_catmat": 1854,
+    "fonte": "Banco de Preços em Saúde (BPS) — Ministério da Saúde",
+    "url_fonte": "https://bps.saude.gov.br/"
+  },
+  "sigtap": {
+    "competencia": "09/2026",
+    "fonte": "SIGTAP — DATASUS",
+    "url_fonte": "http://sigtap.datasus.gov.br/",
+    "n_procedimentos": 5024
+  },
+  "versao_script": "1.0",
+  "sigtap_compatibilidade": {
+    "competencia": "09/2026",
+    "n_relacoes": 12444,
+    "n_tipos": 14,
+    "fonte": "SIGTAP — DATASUS",
+    "url_fonte": "http://sigtap.datasus.gov.br/"
+  }
+}
