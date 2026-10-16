@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
 :root{
   --bg:#FFFBEE; --surface:#fff; --surface-2:#E3F5F4; --line:#EEE6D0;
@@ -50,7 +51,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height
 .brand-sub a{color:var(--accent-ink);text-decoration:none;font-weight:600}
 .brand small{display:block;color:var(--muted);font-size:12px}
 .top-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.pill{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
+.pill{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .icon-btn{border:1px solid var(--line);background:transparent;border-radius:8px;width:34px;height:34px;display:grid;place-items:center}
 .icon-btn:hover{background:var(--surface-2)}
 
@@ -67,6 +68,7 @@ nav.steps{position:sticky;top:82px;align-self:start}
 .active .num{background:var(--green);border-color:var(--green);color:#fff}
 .steps a.active{box-shadow:inset 3px 0 0 var(--green)}
 .badge{margin-left:auto;background:var(--warn-soft);color:var(--warn);border-radius:999px;font-size:11px;padding:1px 7px;font-weight:600}
+.badge:empty{display:none}
 main{min-width:0}
 .view{display:none;animation:fade .18s ease}
 .view.on{display:block}
@@ -145,10 +147,33 @@ input:disabled,select:disabled{opacity:.5}
 .btn.sm{padding:5px 10px;font-size:12px}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn.pri:hover{filter:brightness(1.07)}
+.btn.danger{border-color:var(--accent);color:var(--accent-ink)}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;background:var(--bg);cursor:pointer;user-select:none}
 .tag.on{background:var(--pink-soft);border-color:var(--accent);color:var(--text)}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent-ink);font-size:13px;text-decoration:underline;cursor:pointer}
+
+/* Busca com sugestões */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:10px;max-height:340px;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.ac-item{padding:8px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline;font-size:13px;border-bottom:1px solid var(--line)}
+.ac-item:last-child{border-bottom:0}
+.ac-item:hover,.ac-item.hi{background:var(--surface-2)}
+.ac-item .mono{flex:none;color:var(--accent-ink)}
+.ac-item small{color:var(--muted);margin-left:auto;white-space:nowrap;padding-left:8px}
+.ac-empty{padding:10px 12px;color:var(--muted);font-size:13px}
+
+/* Cartão do item escolhido */
+.sel{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);font-size:13px}
+.sel-top{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px}
+.sel-top b{font-size:14px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.kv small{display:block;color:var(--muted);font-size:11px}
+.kv b{font-variant-numeric:tabular-nums;font-weight:600}
+details.compat{margin-top:10px}
+details.compat summary{cursor:pointer;color:var(--accent-ink);font-weight:500}
+details.compat .table-wrap{max-height:260px;overflow:auto;margin-top:8px;border:1px solid var(--line);border-radius:8px}
 
 /* (?) ajuda */
 .qm{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-size:11px;font-weight:700;display:inline-grid;place-items:center;padding:0;line-height:1}
@@ -178,9 +203,13 @@ th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);whit
 tbody tr:last-child td{border-bottom:0}
 th{font-weight:600;font-size:12px;color:var(--muted);background:var(--surface-2)}
 td.val{text-align:right;font-variant-numeric:tabular-nums}
+td.wrap{white-space:normal;min-width:220px}
 tr.warn td{background:var(--warn-soft)}
 .ph{color:var(--muted)}
+td.empty-row{text-align:center;color:var(--muted);padding:22px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn-dot);margin-right:6px}
+.dot.ok{background:#3BA99C}
+.dot.err{background:var(--accent)}
 .ok{color:var(--muted)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .filters select{width:auto;min-width:130px;padding:7px 10px;font-size:13px}
@@ -191,7 +220,7 @@ tr.warn td{background:var(--warn-soft)}
 
 /* Arquivos */
 .drop{border:2px dashed var(--line);border-radius:var(--radius);padding:34px 18px;text-align:center;background:var(--bg);cursor:pointer;transition:border-color .15s}
-.drop:hover{border-color:var(--accent)}
+.drop:hover,.drop.over{border-color:var(--accent)}
 .drop svg{color:var(--accent-ink)}
 .drop b{display:block;margin:8px 0 2px}
 .drop span{color:var(--muted);font-size:13px}
@@ -203,7 +232,7 @@ tr.warn td{background:var(--warn-soft)}
 .file small{color:var(--muted);font-size:12px}
 .status{font-size:12px;border-radius:999px;padding:2px 9px;background:var(--green-soft);color:var(--green-ink);white-space:nowrap}
 .status.w{background:var(--warn-soft);color:var(--warn)}
-.hidden{display:none}
+.hidden{display:none !important}
 .sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 .sheet{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
 .sheet b{font-size:14px;display:block}
@@ -212,6 +241,11 @@ tr.warn td{background:var(--warn-soft)}
 .draft div{flex:1;min-width:180px}
 .draft b{display:block}
 .draft small{color:var(--muted);font-size:13px}
+
+/* Aviso rápido */
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{background:var(--accent);color:#fff}
 
 footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 18px}
 
@@ -241,7 +275,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
       <span><a class="wordmark" href="#inicio" data-v="inicio" style="text-decoration:none"><span class="o">Onco</span><span class="c">Custo</span></a><span class="brand-sub">Custos pela tabela SIGTAP · por <a href="https://github.com/isabelagsantos" target="_blank" rel="noopener">Isabela Santos</a></span></span>
     </div>
     <div class="top-right">
-      <span class="pill hide-sm">Projeto de exemplo · fulano_de_tal_imp</span>
+      <span class="pill hide-sm" id="pill-proj">Nenhum projeto aberto</span>
       <button class="icon-btn" id="theme" title="Alternar tema" aria-label="Alternar tema">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
@@ -263,7 +297,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
     </ol>
     <h4>Fechamento</h4>
     <ol>
-      <li><a href="#revisao" data-v="revisao"><span class="num">5</span>Revisão<span class="badge">3</span></a></li>
+      <li><a href="#revisao" data-v="revisao"><span class="num">5</span>Revisão<span class="badge" id="nav-badge"></span></a></li>
       <li><a href="#exportar" data-v="exportar"><span class="num">6</span>Exportar</a></li>
     </ol>
   </nav>
@@ -299,6 +333,14 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
           <h3>Continuar rascunho</h3><p>Retome o trabalho salvo neste navegador.</p>
         </button>
       </div>
+
+      <div class="section-title"><h2>Bases de referência</h2><span id="bases-resumo">Carregando…</span></div>
+      <div class="panel">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Base</th><th>Arquivo</th><th style="text-align:right">Registros</th><th>Situação</th></tr></thead>
+          <tbody id="bases-status"><tr><td colspan="4" class="empty-row">Carregando bases…</td></tr></tbody>
+        </table></div>
+      </div>
     </section>
 
     <!-- ================= ABRIR PLANILHA ================= -->
@@ -306,31 +348,32 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
       <button class="back" data-v="inicio">← Voltar ao início</button>
       <div class="page-head"><div><div class="eyebrow">Retomar projeto</div><h1>Abrir planilha exportada</h1><p>Escolha um .xlsx gerado por este site. O projeto é reconstruído e recalculado.</p></div></div>
 
-      <div class="panel">
+      <div class="panel" id="abrir-pick">
         <div class="body">
           <div class="drop" data-pick="abrir">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>
             <b>Arraste o arquivo aqui ou clique para escolher</b>
             <span>Um arquivo .xlsx exportado pelo site</span>
           </div>
+          <input type="file" id="abrir-file" accept=".xlsx" hidden>
         </div>
       </div>
 
       <div class="panel hidden" id="abrir-res">
         <h2>Arquivo selecionado</h2>
         <div class="body">
-          <div class="file"><span class="fic">XLSX</span><div><b>titulo-do-projeto_AAAA-MM-DD.xlsx</b><small>Exportado em — · por —</small></div><span class="status">Arquivo válido</span></div>
+          <div class="file"><span class="fic">XLSX</span><div><b id="abrir-nome">—</b><small id="abrir-meta">—</small></div><span class="status" id="abrir-status">Arquivo válido</span></div>
         </div>
         <div class="body" style="padding-top:0">
           <div class="stats" style="margin:0">
-            <div class="stat"><small>Pacientes</small><strong>—</strong></div>
-            <div class="stat"><small>Procedimentos</small><strong>—</strong></div>
-            <div class="stat"><small>Internações</small><strong>—</strong></div>
-            <div class="stat"><small>Medicamentos</small><strong>—</strong></div>
+            <div class="stat"><small>Pacientes</small><strong id="abrir-pac">—</strong></div>
+            <div class="stat"><small>Procedimentos</small><strong id="abrir-proc">—</strong></div>
+            <div class="stat"><small>Internações</small><strong id="abrir-int">—</strong></div>
+            <div class="stat"><small>Medicamentos</small><strong id="abrir-med">—</strong></div>
           </div>
         </div>
-        <div class="body" style="padding-top:0"><div class="info">ℹ Competência SIGTAP do arquivo: — · Base do BPS (mês/ano): —. Ajustes manuais serão mantidos.</div></div>
-        <div class="form-foot"><button class="btn" data-reset="abrir">Trocar arquivo</button><button class="btn pri" data-v="revisao">Abrir projeto</button></div>
+        <div class="body" style="padding-top:0"><div class="info" id="abrir-info">ℹ —</div></div>
+        <div class="form-foot"><button class="btn" data-reset="abrir">Trocar arquivo</button><button class="btn pri" id="abrir-ok">Abrir projeto</button></div>
       </div>
     </section>
 
@@ -338,10 +381,11 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
     <section class="view" id="v-juntar">
       <button class="back" data-v="inicio">← Voltar ao início</button>
       <div class="page-head"><div><div class="eyebrow">Trabalho em equipe</div><h1>Juntar planilhas da equipe</h1><p>Escolha os .xlsx de cada usuário. Só arquivos com o mesmo nome de uso são unidos.</p></div></div>
+      <div class="note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><div>Esta tela ainda é um protótipo: a junção de planilhas entra junto com as regras.</div></div>
 
       <div class="panel">
         <div class="body">
-          <div class="drop" data-pick="juntar">
+          <div class="drop" data-demo="juntar">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>
             <b>Arraste os arquivos aqui ou clique para escolher</b>
             <span>Dois ou mais arquivos .xlsx do mesmo projeto</span>
@@ -358,25 +402,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
             <div class="file"><span class="fic">XLSX</span><div><b>arquivo_usuario_3.xlsx</b><small>Usuário: — · nome de uso: —</small></div><span class="status w">Outro projeto</span></div>
           </div>
         </div>
-
-        <div class="stats">
-          <div class="stat"><small>Entradas novas</small><strong>—</strong></div>
-          <div class="stat"><small>Iguais (ignoradas)</small><strong>—</strong></div>
-          <div class="stat"><small>Conflitos</small><strong style="color:var(--warn)">2</strong></div>
-          <div class="stat"><small>Usuários</small><strong>—</strong></div>
-        </div>
-
-        <div class="panel">
-          <h2>Conflitos <small>· a mesma entrada editada por duas pessoas</small></h2>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Entrada</th><th>Campo</th><th>Versão A</th><th>Versão B</th><th>Manter</th></tr></thead>
-            <tbody>
-              <tr class="warn"><td class="ph">—</td><td class="ph">—</td><td class="ph">— (usuário A)</td><td class="ph">— (usuário B)</td><td><div class="seg"><button class="on">A</button><button>B</button></div></td></tr>
-              <tr class="warn"><td class="ph">—</td><td class="ph">—</td><td class="ph">— (usuário A)</td><td class="ph">— (usuário B)</td><td><div class="seg"><button class="on">A</button><button>B</button></div></td></tr>
-            </tbody>
-          </table></div>
-          <div class="form-foot"><button class="btn" data-reset="juntar">Trocar arquivos</button><button class="btn pri" data-v="revisao">Juntar e recalcular</button></div>
-        </div>
+        <div class="form-foot"><button class="btn" data-reset="juntar">Trocar arquivos</button></div>
       </div>
     </section>
 
@@ -384,22 +410,7 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
     <section class="view" id="v-rascunho">
       <button class="back" data-v="inicio">← Voltar ao início</button>
       <div class="page-head"><div><div class="eyebrow">Salvos neste navegador</div><h1>Continuar rascunho</h1><p>O site salva o rascunho a cada entrada. Exporte o .xlsx com frequência para não depender do navegador.</p></div></div>
-
-      <div class="panel">
-        <div class="body draft">
-          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center">✎</span>
-          <div><b>Projeto de exemplo A</b><small>Última alteração: — · — entradas · usuário: —</small></div>
-          <button class="btn">Excluir</button><button class="btn pri" data-v="procedimentos">Continuar</button>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="body draft">
-          <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center">✎</span>
-          <div><b>Projeto de exemplo B</b><small>Última alteração: — · — entradas · usuário: —</small></div>
-          <button class="btn">Excluir</button><button class="btn pri" data-v="procedimentos">Continuar</button>
-        </div>
-      </div>
-
+      <div id="rascunhos"></div>
     </section>
 
     <!-- ================= PROJETO ================= -->
@@ -409,19 +420,19 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
       <div class="panel">
         <h2>Identificação</h2>
         <div class="body fields">
-          <div class="f"><label>Título do projeto <span class="req">*</span></label><input type="text" placeholder="Ex.: Custos TNBC platina"></div>
-          <div class="f"><label>Nome de uso <span class="req">*</span></label><input type="text" placeholder="Identificador comum da equipe"><span class="help">Usado para juntar as planilhas.</span></div>
-          <div class="f"><label>Centro <span class="req">*</span></label><input type="text" placeholder="Nome do hospital ou serviço"></div>
+          <div class="f"><label>Título do projeto <span class="req">*</span></label><input type="text" data-k="titulo" placeholder="Ex.: Custos TNBC platina"></div>
+          <div class="f"><label>Nome de uso <span class="req">*</span></label><input type="text" data-k="nome_uso" placeholder="Identificador comum da equipe"><span class="help">Usado para juntar as planilhas.</span></div>
+          <div class="f"><label>Centro <span class="req">*</span></label><input type="text" data-k="centro" placeholder="Nome do hospital ou serviço"></div>
           <div class="f">
             <label>CNES <span class="opt">(opcional)</span> <button type="button" class="qm" aria-label="O que é o CNES">?</button></label>
             <div class="tip">O <b>CNES</b> (Cadastro Nacional de Estabelecimentos de Saúde) é o número que identifica o hospital no SUS. Nele também aparecem as habilitações do serviço. Consulte o da sua instituição em <a href="https://cnes.datasus.gov.br/" target="_blank" rel="noopener">cnes.datasus.gov.br</a>.</div>
-            <input type="text" placeholder="0000000">
+            <input type="text" data-k="cnes" placeholder="0000000">
           </div>
-          <div class="f"><label>UF padrão</label><select><option>Selecione</option></select></div>
-          <div class="f"><label>Município padrão</label><select><option>Selecione</option></select></div>
+          <div class="f"><label>UF padrão</label><select data-k="uf" data-uf data-mun-target="p-mun"><option value="">Selecione</option></select></div>
+          <div class="f"><label>Município padrão</label><select data-k="municipio" id="p-mun"><option value="">Selecione a UF</option></select></div>
           <div class="f full"><label>Usuário desta sessão <span class="req">*</span> <button type="button" class="qm" aria-label="Diferença entre usuário e nome de uso">?</button></label>
             <div class="tip">O <b>usuário</b> identifica a pessoa que está registrando nesta sessão; cada membro da equipe tem o seu. É diferente do <b>nome de uso</b>, que é um só para toda a equipe do projeto e serve para juntar as planilhas.</div>
-            <input type="text" placeholder="fulano_de_tal_imp"><span class="help">Use letras minúsculas, sem acentos e com _ entre as palavras; no final, _ e a sigla da equipe. Ex.: fulano_de_tal_imp (identifica o Fulano de Tal, membro do Instituto Mário Penna)</span></div>
+            <input type="text" data-k="usuario" placeholder="fulano_de_tal_imp"><span class="help">Use letras minúsculas, sem acentos e com _ entre as palavras; no final, _ e a sigla da equipe. Ex.: fulano_de_tal_imp (identifica o Fulano de Tal, membro do Instituto Mário Penna)</span></div>
         </div>
       </div>
 
@@ -429,66 +440,70 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
         <h2>Parâmetros <small>· decisões metodológicas</small> <button type="button" class="qm" aria-label="Sobre as decisões metodológicas">?</button></h2>
         <div class="tip">Projetos de um mesmo estudo devem usar <b>as mesmas decisões metodológicas</b>, para que os resultados sigam um padrão e possam ser comparados. Antes de preencher, confirme com a equipe e/ou consulte o protocolo, os documentos e os manuais do estudo.</div>
         <div class="body params">
-          <div class="param"><div><b>Competência do SIGTAP</b><span>Uma competência para todo o período</span></div><select><option>Selecione</option></select></div>
-          <div class="param"><div><b>Data de referência do BPS</b><span>Janela de 12 meses antes desta data</span></div><input type="date"></div>
-          <div class="param"><div><b>Mínimo de compras por nível</b><span>Município, UF, região, Brasil</span></div><input type="number" value="3"></div>
+          <div class="param"><div><b>Competência do SIGTAP</b><span>Uma competência para todo o período</span></div><select data-k="comp_sigtap" data-comp></select></div>
+          <div class="param"><div><b>Base do BPS</b><span>Arquivo de medianas usado no projeto</span></div><select data-k="base_bps" data-bps></select></div>
+          <div class="param"><div><b>Data de referência do BPS</b><span>Janela de 12 meses antes desta data</span></div><input type="date" data-k="bps_ref"></div>
+          <div class="param"><div><b>Mínimo de compras por nível</b><span>Município, UF, região, Brasil</span></div><input type="number" data-k="min_compras" value="3" min="1"></div>
           <div class="param hl">
             <div><b>Habilitação Oncologia Cirúrgica <span class="req">*</span> <button type="button" class="qm" aria-label="O que é o CNES">?</button></b><span>17.17 / 17.18 · conferência obrigatória no CNES</span></div>
             <div>
-              <div class="seg" id="hab"><button class="on">Sem habilitação</button><button data-hab>Com habilitação</button></div>
-              <div class="vig" id="vig"><div><label>Início da vigência</label><input type="date"></div><div><label>Fim da vigência</label><input type="date"></div></div>
-              <label class="check" style="margin-top:8px"><input type="checkbox">Conferi a habilitação no CNES</label>
+              <div class="seg" id="hab" data-k="habilitacao"><button class="on">Sem habilitação</button><button data-hab>Com habilitação</button></div>
+              <div class="vig" id="vig"><div><label>Início da vigência</label><input type="date" data-k="hab_inicio"></div><div><label>Fim da vigência</label><input type="date" data-k="hab_fim"></div></div>
+              <label class="check" style="margin-top:8px"><input type="checkbox" data-k="hab_conferida">Conferi a habilitação no CNES</label>
             </div>
             <div class="tip" style="grid-column:1/-1">O <b>CNES</b> (Cadastro Nacional de Estabelecimentos de Saúde) é o número que identifica o hospital no SUS. Nele também aparecem as habilitações do serviço. Consulte o da sua instituição em <a href="https://cnes.datasus.gov.br/" target="_blank" rel="noopener">cnes.datasus.gov.br</a>.</div>
           </div>
-          <div class="param"><div><b>SA e SH no mesmo código</b></div><div class="seg"><button class="on">Contar uma vez</button><button>Somar os dois</button></div></div>
-          <div class="param"><div><b>Data do custo da radioterapia</b></div><div class="seg"><button>Início</button><button class="on">Término</button></div></div>
-          <div class="param"><div><b>Fator estimulador de colônias</b></div><div class="seg"><button class="on">Uma por mês</button><button>Por aplicação</button></div></div>
-          <div class="param"><div><b>Registros fora da janela da AIH</b></div><div class="seg"><button class="on">Ambulatoriais</button><button>AIH mais próxima</button></div></div>
-          <div class="param"><div><b>Permanência a maior</b></div><div class="seg"><button class="on">Informada</button><button>Fórmula do SIH</button></div></div>
-          <div class="param"><div><b>Fator de correção do SIGTAP</b><span>Sai em coluna separada</span></div><input type="text" placeholder="Nenhum"></div>
+          <div class="param"><div><b>SA e SH no mesmo código</b></div><div class="seg" data-k="sa_sh"><button class="on">Contar uma vez</button><button>Somar os dois</button></div></div>
+          <div class="param"><div><b>Data do custo da radioterapia</b></div><div class="seg" data-k="rt_data"><button>Início</button><button class="on">Término</button></div></div>
+          <div class="param"><div><b>Fator estimulador de colônias</b></div><div class="seg" data-k="fec"><button class="on">Uma por mês</button><button>Por aplicação</button></div></div>
+          <div class="param"><div><b>Registros fora da janela da AIH</b></div><div class="seg" data-k="fora_aih"><button class="on">Ambulatoriais</button><button>AIH mais próxima</button></div></div>
+          <div class="param"><div><b>Permanência a maior</b></div><div class="seg" data-k="permanencia"><button class="on">Informada</button><button>Fórmula do SIH</button></div></div>
+          <div class="param"><div><b>Fator de correção do SIGTAP</b><span>Sai em coluna separada</span></div><input type="text" data-k="fator" placeholder="Nenhum"></div>
         </div>
-        <div class="form-foot"><button class="btn" data-v="inicio">Cancelar</button><button class="btn pri" data-v="procedimentos">Salvar e começar o registro</button></div>
+        <div class="form-foot"><button class="btn" data-v="inicio">Cancelar</button><button class="btn pri" id="proj-salvar">Salvar e começar o registro</button></div>
       </div>
     </section>
 
     <!-- ================= PROCEDIMENTOS ================= -->
-    <section class="view" id="v-procedimentos">
+    <section class="view" id="v-procedimentos" data-form="procs">
       <div class="page-head"><div><div class="eyebrow">Etapa 2 · Registro</div><h1>Procedimentos</h1><p>Exames, consultas, cirurgias, quimioterapia, radioterapia, diárias e OPM.</p></div></div>
       <div class="subnav" data-sub></div>
 
       <div class="panel">
         <h2>Paciente e origem</h2>
         <div class="body fields three">
-          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text"><label class="check"><input type="checkbox" data-lock>Mesmo paciente da entrada anterior</label></div>
-          <div class="f"><label>Código do paciente <span class="req">*</span></label><input type="text" placeholder="Ex.: PCM001"><div class="checks"><label class="check"><input type="checkbox" data-lock>Mesmo código do paciente da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Sem código específico</label></div></div>
-          <div class="f"><label>Origem do dado <span class="req">*</span></label><select><option>Prontuário</option><option>Laudo de exame</option><option>Ambos</option><option>Outra</option></select><label class="check"><input type="checkbox" data-lock>Mesma origem da entrada anterior</label></div>
+          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text" data-k="prontuario"><label class="check"><input type="checkbox" data-lock data-same>Mesmo paciente da entrada anterior</label></div>
+          <div class="f"><label>Código do paciente <span class="req">*</span></label><input type="text" data-k="codigo_paciente" placeholder="Ex.: PCM001"><div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesmo código do paciente da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Sem código">Sem código específico</label></div></div>
+          <div class="f"><label>Origem do dado <span class="req">*</span></label><select data-k="origem_dado"><option>Prontuário</option><option>Laudo de exame</option><option>Ambos</option><option>Outra</option></select><label class="check"><input type="checkbox" data-lock data-same>Mesma origem da entrada anterior</label></div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Procedimento</h2>
+        <h2>Procedimento <small id="proc-comp-lbl"></small></h2>
         <div class="body fields">
-          <div class="f full"><label>Procedimento <span class="req">*</span></label><input type="text" placeholder="Buscar por código (00.00.00.000-0) ou palavras"></div>
-          <div class="f"><label>Data de realização <span class="req">*</span></label><input type="date">
+          <div class="f full"><label>Procedimento <span class="req">*</span></label>
+            <div class="ac-wrap"><input type="text" id="proc-busca" autocomplete="off" placeholder="Buscar por código (00.00.00.000-0) ou palavras"></div>
+            <div id="proc-info" class="hidden"></div>
+          </div>
+          <div class="f"><label>Data de realização <span class="req">*</span></label><input type="date" data-k="data_realizacao">
             <div class="hint">⚠ Registre a data em que o procedimento foi realizado, não a do pedido.</div>
-            <div class="checks"><label class="check"><input type="checkbox" data-lock>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Data desconhecida</label></div></div>
-          <div class="f"><label>Data do pedido <span class="req">*</span></label><input type="date"><div class="checks"><label class="check"><input type="checkbox" data-lock>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Data desconhecida</label></div></div>
-          <div class="f"><label>Quantidade <span class="req">*</span></label><input type="number" value="1" min="1"></div>
-          <div class="f"><label>Local do ato <span class="opt">(automático)</span></label><div class="auto">Ambulatorial<small>Preenchido pelo site: compara a data de realização com as internações cadastradas</small></div></div>
+            <div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Data não informada">Data desconhecida</label></div></div>
+          <div class="f"><label>Data do pedido <span class="req">*</span></label><input type="date" data-k="data_pedido"><div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Data não informada">Data desconhecida</label></div></div>
+          <div class="f"><label>Quantidade <span class="req">*</span></label><input type="number" data-k="quantidade" value="1" min="1"></div>
+          <div class="f"><label>Local do ato <span class="opt">(automático)</span></label><div class="auto" id="proc-local">Ambulatorial<small>Preenchido pelo site: compara a data de realização com as internações cadastradas</small></div></div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Cirurgia em AIH e radioterapia <small>· aparecem conforme o procedimento</small></h2>
+        <h2>Cirurgia em AIH e radioterapia <small>· preencha quando se aplicar</small></h2>
         <div class="body fields three">
-          <div class="f"><label>Nº da AIH</label><select><option>Selecione</option><option>+ Nova AIH</option></select></div>
-          <div class="f"><label>Tipo de AIH</label><select><option>Comum</option><option>Sequenciais em oncologia (04.15.02.005-0)</option><option>Cirurgias múltiplas (04.15.01.001-2)</option><option>Outras sequenciais (04.15.02.003-4)</option><option>Outro tipo…</option></select><span class="help">Lista completa a definir.</span></div>
-          <div class="f"><label>Ordem na AIH</label><input type="number" min="1"></div>
-          <div class="f full"><div class="info">ℹ Ao salvar, a cirurgia e a AIH são registradas automaticamente na aba Internações. Complete lá as datas de entrada e alta, se ainda faltarem. <button class="linkbtn" data-v="internacoes">Ir para Internações</button></div></div>
-          <div class="f"><label>Início do tratamento</label><input type="date"></div>
-          <div class="f"><label>Término do tratamento</label><input type="date"></div>
-          <div class="f"><label>Nº de sessões</label><input type="number" placeholder="Radioterapia"></div>
+          <div class="f"><label>Nº da AIH</label><select data-k="aih" id="proc-aih"><option value="">Nenhuma</option></select></div>
+          <div class="f"><label>Tipo de AIH</label><select data-k="tipo_aih"><option value="">—</option><option>Comum</option><option>Sequenciais em oncologia (04.15.02.005-0)</option><option>Cirurgias múltiplas (04.15.01.001-2)</option><option>Outras sequenciais (04.15.02.003-4)</option><option>Outro tipo…</option></select><span class="help">Lista completa a definir.</span></div>
+          <div class="f"><label>Ordem na AIH</label><input type="number" data-k="ordem_aih" min="1"></div>
+          <div class="f full"><div class="info">ℹ As AIH desta lista vêm da aba Internações. Cadastre lá a internação antes de vincular a cirurgia. <button class="linkbtn" data-v="internacoes">Ir para Internações</button></div></div>
+          <div class="f"><label>Início do tratamento</label><input type="date" data-k="rt_inicio"></div>
+          <div class="f"><label>Término do tratamento</label><input type="date" data-k="rt_fim"></div>
+          <div class="f"><label>Nº de sessões</label><input type="number" data-k="rt_sessoes" placeholder="Radioterapia"></div>
         </div>
       </div>
 
@@ -500,79 +515,79 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
             <div class="tip" data-siglas></div>
             <div class="tags" data-tags></div>
           </div>
-          <div class="f"><label>Documento</label><input type="text" disabled><label class="check"><input type="checkbox" data-lock checked>Não necessário</label></div>
-          <div class="f"><label>Observação livre</label><input type="text"></div>
+          <div class="f"><label>Documento</label><input type="text" data-k="doc" disabled><label class="check"><input type="checkbox" data-lock data-unk="Não necessário" checked>Não necessário</label></div>
+          <div class="f"><label>Observação livre</label><input type="text" data-k="observacao_usuario"></div>
         </div>
-        <div class="form-foot"><button class="btn">Limpar</button><button class="btn pri">Salvar e próximo</button></div>
+        <div class="form-foot"><button class="btn" data-limpar>Limpar</button><button class="btn pri" id="proc-salvar">Salvar e próximo</button></div>
       </div>
 
       <div class="panel">
         <h2>Revisão parcial <small>· últimas 5 entradas</small><span class="right"><button class="linkbtn" data-v="revisao">Ver todas na Revisão</button></span></h2>
         <div class="table-wrap"><table>
-          <thead><tr><th>Paciente</th><th>Data</th><th>Procedimento</th><th>Local</th><th>Situação</th><th style="text-align:right">Valor</th><th>Aviso</th><th></th></tr></thead>
+          <thead><tr><th>Paciente</th><th>Data</th><th>Procedimento</th><th>Local</th><th>Situação</th><th style="text-align:right">Valor de tabela</th><th>Aviso</th><th></th></tr></thead>
           <tbody data-rows="proc"></tbody>
         </table></div>
       </div>
     </section>
 
     <!-- ================= INTERNAÇÕES ================= -->
-    <section class="view" id="v-internacoes">
-      <div class="page-head"><div><div class="eyebrow">Etapa 3 · Registro</div><h1>Internações</h1><p>Uma linha por AIH. Cirurgias registradas em Procedimentos já aparecem aqui.</p></div></div>
+    <section class="view" id="v-internacoes" data-form="ints">
+      <div class="page-head"><div><div class="eyebrow">Etapa 3 · Registro</div><h1>Internações</h1><p>Uma linha por AIH. O local do ato dos procedimentos é definido por estas datas.</p></div></div>
       <div class="subnav" data-sub></div>
 
       <div class="panel">
         <h2>Nova internação</h2>
         <div class="body fields three">
-          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text"><label class="check"><input type="checkbox" data-lock>Mesmo paciente da entrada anterior</label></div>
-          <div class="f"><label>Nº da AIH <span class="req">*</span></label><input type="text" placeholder="Ex.: Cirurgia 1"></div>
-          <div class="f"><label>Tipo de AIH <span class="req">*</span></label><select><option>Comum</option><option>Sequenciais em oncologia (04.15.02.005-0)</option><option>Cirurgias múltiplas (04.15.01.001-2)</option><option>Outras sequenciais (04.15.02.003-4)</option><option>Outro tipo…</option></select><span class="help">Lista completa a definir.</span></div>
-          <div class="f"><label>Data de entrada <span class="req">*</span></label><input type="date"></div>
-          <div class="f"><label>Data de alta <span class="req">*</span></label><input type="date"></div>
-          <div class="f"><label>Motivo de saída <span class="req">*</span></label><select><option>Alta</option><option>Transferência</option><option>Óbito</option><option>Permanência</option></select></div>
-          <div class="f full"><label>Observação <span class="opt">(opcional)</span></label><input type="text"></div>
+          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text" data-k="prontuario"><label class="check"><input type="checkbox" data-lock data-same>Mesmo paciente da entrada anterior</label></div>
+          <div class="f"><label>Nº da AIH <span class="req">*</span></label><input type="text" data-k="aih" placeholder="Ex.: Cirurgia 1"></div>
+          <div class="f"><label>Tipo de AIH <span class="req">*</span></label><select data-k="tipo_aih"><option>Comum</option><option>Sequenciais em oncologia (04.15.02.005-0)</option><option>Cirurgias múltiplas (04.15.01.001-2)</option><option>Outras sequenciais (04.15.02.003-4)</option><option>Outro tipo…</option></select><span class="help">Lista completa a definir.</span></div>
+          <div class="f"><label>Data de entrada <span class="req">*</span></label><input type="date" data-k="data_entrada"></div>
+          <div class="f"><label>Data de alta <span class="req">*</span></label><input type="date" data-k="data_alta"></div>
+          <div class="f"><label>Motivo de saída <span class="req">*</span></label><select data-k="motivo_saida"><option>Alta</option><option>Transferência</option><option>Óbito</option><option>Permanência</option></select></div>
+          <div class="f full"><label>Observação <span class="opt">(opcional)</span></label><input type="text" data-k="observacao_usuario"></div>
         </div>
-        <div class="form-foot"><button class="btn">Limpar</button><button class="btn pri">Salvar internação</button></div>
+        <div class="form-foot"><button class="btn" data-limpar>Limpar</button><button class="btn pri" id="int-salvar">Salvar internação</button></div>
       </div>
 
       <div class="panel">
         <h2>Internações cadastradas</h2>
         <div class="table-wrap"><table>
-          <thead><tr><th>Prontuário</th><th>Nº AIH</th><th>Tipo</th><th>Entrada</th><th>Alta</th><th>Motivo</th><th>Origem</th><th>Aviso</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">Manual</td><td class="ok">—</td><td><button class="btn sm">Editar</button></td></tr>
-            <tr class="warn"><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">—</td><td class="ph">Vinda de Procedimentos</td><td><span class="dot"></span>Faltam datas</td><td><button class="btn sm">Editar</button></td></tr>
-          </tbody>
+          <thead><tr><th>Prontuário</th><th>Nº AIH</th><th>Tipo</th><th>Entrada</th><th>Alta</th><th>Motivo</th><th>Procedimentos</th><th>Aviso</th><th></th></tr></thead>
+          <tbody data-rows="int"></tbody>
         </table></div>
       </div>
     </section>
 
     <!-- ================= MEDICAMENTOS ================= -->
-    <section class="view" id="v-medicamentos">
+    <section class="view" id="v-medicamentos" data-form="meds">
       <div class="page-head"><div><div class="eyebrow">Etapa 4 · Registro</div><h1>Medicamentos</h1><p>Retirados pelo paciente, fora de procedimentos. Quimioterapia vai em Procedimentos.</p></div></div>
       <div class="subnav" data-sub></div>
 
       <div class="panel">
         <h2>Paciente e origem</h2>
         <div class="body fields three">
-          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text"><label class="check"><input type="checkbox" data-lock>Mesmo paciente da entrada anterior</label></div>
-          <div class="f"><label>Código do paciente <span class="req">*</span></label><input type="text" placeholder="Ex.: PCM001"><div class="checks"><label class="check"><input type="checkbox" data-lock>Mesmo código do paciente da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Sem código específico</label></div></div>
-          <div class="f"><label>Origem do dado <span class="req">*</span></label><select><option>Prontuário</option><option>Laudo de exame</option><option>Ambos</option><option>Outra</option></select><label class="check"><input type="checkbox" data-lock>Mesma origem da entrada anterior</label></div>
+          <div class="f"><label>Prontuário <span class="req">*</span></label><input type="text" data-k="prontuario"><label class="check"><input type="checkbox" data-lock data-same>Mesmo paciente da entrada anterior</label></div>
+          <div class="f"><label>Código do paciente <span class="req">*</span></label><input type="text" data-k="codigo_paciente" placeholder="Ex.: PCM001"><div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesmo código do paciente da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Sem código">Sem código específico</label></div></div>
+          <div class="f"><label>Origem do dado <span class="req">*</span></label><select data-k="origem_dado"><option>Prontuário</option><option>Laudo de exame</option><option>Ambos</option><option>Outra</option></select><label class="check"><input type="checkbox" data-lock data-same>Mesma origem da entrada anterior</label></div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Medicamento</h2>
+        <h2>Medicamento <small id="med-bps-lbl"></small></h2>
         <div class="body fields">
-          <div class="f full"><label>Medicamento <span class="req">*</span></label><input type="text" placeholder="Buscar por código CATMAT ou nome"></div>
-          <div class="f"><label>Unidade de fornecimento <span class="req">*</span></label><select><option>Comprimido</option><option>Frasco</option><option>Ampola</option></select></div>
-          <div class="f"><label>Quantidade <span class="req">*</span></label><input type="number" min="1"><span class="help">Em unidades, não em caixas.</span></div>
-          <div class="f"><label>Data de retirada <span class="req">*</span></label><input type="date">
+          <div class="f full"><label>Medicamento <span class="req">*</span></label>
+            <div class="ac-wrap"><input type="text" id="med-busca" autocomplete="off" placeholder="Buscar por código CATMAT ou nome"></div>
+            <div id="med-info" class="hidden"></div>
+          </div>
+          <div class="f"><label>Unidade de fornecimento <span class="req">*</span></label><select data-k="unidade" id="med-un"><option value="">Escolha o medicamento</option></select></div>
+          <div class="f"><label>Quantidade <span class="req">*</span></label><input type="number" data-k="quantidade" id="med-qtd" min="1" value="1"><span class="help">Em unidades, não em caixas.</span></div>
+          <div class="f"><label>Data de retirada <span class="req">*</span></label><input type="date" data-k="data_retirada">
             <div class="hint">⚠ Registre a data de retirada na farmácia, não a da receita.</div>
-            <div class="checks"><label class="check"><input type="checkbox" data-lock>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Data desconhecida</label><label class="check"><input type="checkbox" data-lock>Não retirado</label></div></div>
-          <div class="f"><label>Data da receita <span class="req">*</span></label><input type="date"><div class="checks"><label class="check"><input type="checkbox" data-lock>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock>Data desconhecida</label></div></div>
-          <div class="f"><label>UF de retirada <span class="req">*</span></label><select><option>Selecione</option></select><label class="check"><input type="checkbox" data-lock>UF cadastrada anteriormente em 'Projeto'</label></div>
-          <div class="f"><label>Município de retirada <span class="opt">(opcional)</span></label><select><option>Selecione</option></select><label class="check"><input type="checkbox" data-lock>Município cadastrado anteriormente em 'Projeto'</label></div>
-          <div class="f full"><label>Preço estimado</label><div class="auto">R$ —<small>Nível: — · compras: —</small></div></div>
+            <div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Data não informada">Data desconhecida</label><label class="check"><input type="checkbox" data-lock data-unk="Não retirado">Não retirado</label></div></div>
+          <div class="f"><label>Data da receita <span class="req">*</span></label><input type="date" data-k="data_receita"><div class="checks"><label class="check"><input type="checkbox" data-lock data-same>Mesma data da entrada anterior</label><label class="check"><input type="checkbox" data-lock data-unk="Data não informada">Data desconhecida</label></div></div>
+          <div class="f"><label>UF de retirada <span class="req">*</span></label><select data-k="uf" data-uf data-mun-target="med-mun" id="med-uf"><option value="">Selecione</option></select><label class="check"><input type="checkbox" data-lock data-proj="uf">UF cadastrada anteriormente em 'Projeto'</label></div>
+          <div class="f"><label>Município de retirada <span class="opt">(opcional)</span></label><select data-k="municipio" id="med-mun"><option value="">Selecione a UF</option></select><label class="check"><input type="checkbox" data-lock data-proj="municipio">Município cadastrado anteriormente em 'Projeto'</label></div>
+          <div class="f full"><label>Preço estimado <span class="opt">(mediana do BPS, sem regras)</span></label><div class="auto" id="med-preco">R$ —<small>Nível: — · compras: —</small></div></div>
         </div>
       </div>
 
@@ -584,10 +599,10 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
             <div class="tip" data-siglas></div>
             <div class="tags" data-tags></div>
           </div>
-          <div class="f"><label>Documento</label><input type="text" disabled><label class="check"><input type="checkbox" data-lock checked>Não necessário</label></div>
-          <div class="f"><label>Observação livre</label><input type="text"></div>
+          <div class="f"><label>Documento</label><input type="text" data-k="doc" disabled><label class="check"><input type="checkbox" data-lock data-unk="Não necessário" checked>Não necessário</label></div>
+          <div class="f"><label>Observação livre</label><input type="text" data-k="observacao_usuario"></div>
         </div>
-        <div class="form-foot"><button class="btn">Limpar</button><button class="btn pri">Salvar e próximo</button></div>
+        <div class="form-foot"><button class="btn" data-limpar>Limpar</button><button class="btn pri" id="med-salvar">Salvar e próximo</button></div>
       </div>
 
       <div class="panel">
@@ -601,23 +616,23 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
 
     <!-- ================= REVISÃO ================= -->
     <section class="view" id="v-revisao">
-      <div class="page-head"><div><div class="eyebrow">Etapa 5</div><h1>Revisão</h1><p>Todas as entradas calculadas. Passe o mouse no valor para ver a regra aplicada.</p></div></div>
+      <div class="page-head"><div><div class="eyebrow">Etapa 5</div><h1>Revisão</h1><p>Todas as entradas com o valor de tabela, ainda sem as regras de custeio.</p></div></div>
 
       <div class="stats">
-        <div class="stat"><small>Pacientes</small><strong>—</strong></div>
-        <div class="stat"><small>Entradas</small><strong>—</strong></div>
-        <div class="stat"><small>Avisos pendentes</small><strong style="color:var(--warn)">3</strong></div>
-        <div class="stat"><small>Total geral</small><strong>R$ —</strong></div>
+        <div class="stat"><small>Pacientes</small><strong id="st-pac">0</strong></div>
+        <div class="stat"><small>Entradas</small><strong id="st-ent">0</strong></div>
+        <div class="stat"><small>Avisos pendentes</small><strong style="color:var(--warn)" id="st-av">0</strong></div>
+        <div class="stat"><small>Total de tabela</small><strong id="st-tot">R$ 0,00</strong></div>
       </div>
 
       <div class="panel">
         <div class="filters">
-          <select><option>Paciente</option></select>
-          <select><option>Tipo</option></select>
-          <select><option>Mês</option></select>
-          <select><option>AIH</option></select>
-          <select><option>Situação</option></select>
-          <label class="check"><input type="checkbox">Só com aviso</label>
+          <select id="fl-pac"><option value="">Paciente</option></select>
+          <select id="fl-tipo"><option value="">Tipo</option><option value="proc">Procedimento</option><option value="med">Medicamento</option></select>
+          <select id="fl-mes"><option value="">Mês</option></select>
+          <select id="fl-aih"><option value="">AIH</option></select>
+          <select id="fl-sit"><option value="">Situação</option></select>
+          <label class="check"><input type="checkbox" id="fl-aviso">Só com aviso</label>
         </div>
         <div class="table-wrap"><table>
           <thead><tr><th>Paciente</th><th>Data</th><th>Código</th><th>Descrição</th><th>Local</th><th>Situação</th><th style="text-align:right">Valor</th><th>Aviso</th><th></th></tr></thead>
@@ -628,21 +643,11 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
       <div class="panel">
         <h2>Bases de referência <small>· valem para o projeto inteiro</small></h2>
         <div class="body fields">
-          <div class="f"><label>Competência do SIGTAP</label><select><option>Selecione</option></select></div>
-          <div class="f"><label>Base do BPS (mês/ano)</label><select><option>Selecione</option></select></div>
-          <div class="f full"><div class="info">ℹ Mudar uma base recalcula todas as entradas. Os ajustes manuais são mantidos, e o site avisa quando um código não existe na nova tabela.</div></div>
+          <div class="f"><label>Competência do SIGTAP</label><select id="rev-comp" data-comp></select></div>
+          <div class="f"><label>Base do BPS</label><select id="rev-bps" data-bps></select></div>
+          <div class="f full"><div class="info">ℹ Mudar uma base recalcula todas as entradas, e o site avisa quando um código não existe na nova tabela.</div></div>
         </div>
-        <div class="form-foot"><button class="btn pri">Recalcular projeto</button></div>
-      </div>
-
-      <div class="panel">
-        <h2>Ajuste manual <small>· linha selecionada</small></h2>
-        <div class="body fields three">
-          <div class="f"><label>Valor calculado</label><div class="auto">R$ —</div></div>
-          <div class="f"><label>Novo valor</label><input type="text" placeholder="0,00"></div>
-          <div class="f"><label>Justificativa <span class="req">*</span></label><input type="text"></div>
-        </div>
-        <div class="form-foot"><button class="btn">Remover ajuste</button><button class="btn pri">Aplicar ajuste</button></div>
+        <div class="form-foot"><button class="btn pri" id="rev-recalc">Recalcular projeto</button></div>
       </div>
     </section>
 
@@ -653,23 +658,23 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
       <div class="panel">
         <h2>Arquivo</h2>
         <div class="body fields">
-          <div class="f"><label>Nome do arquivo</label><div class="auto"><span class="mono">titulo-do-projeto_AAAA-MM-DD.xlsx</span></div></div>
-          <div class="f"><label>Versão</label><div class="seg"><button class="on">Completa</button><button>Sem prontuário</button></div></div>
+          <div class="f"><label>Nome do arquivo</label><div class="auto"><span class="mono" id="exp-nome">titulo-do-projeto_AAAA-MM-DD.xlsx</span></div></div>
+          <div class="f"><label>Versão</label><div class="seg" id="exp-versao"><button class="on">Completa</button><button>Sem prontuário</button></div></div>
         </div>
       </div>
 
       <div class="panel">
         <h2>Abas incluídas</h2>
         <div class="body sheets">
-          <div class="sheet"><b>Procedimentos</b><span>Entradas e resultados</span></div>
-          <div class="sheet"><b>Internações</b><span>Cadastro de AIH</span></div>
-          <div class="sheet"><b>Medicamentos</b><span>Entradas e resultados</span></div>
+          <div class="sheet"><b>Procedimentos</b><span id="sh-proc">Entradas e resultados</span></div>
+          <div class="sheet"><b>Internações</b><span id="sh-int">Cadastro de AIH</span></div>
+          <div class="sheet"><b>Medicamentos</b><span id="sh-med">Entradas e resultados</span></div>
           <div class="sheet"><b>Resumo</b><span>Totais por paciente</span></div>
           <div class="sheet"><b>Avisos</b><span>Validações pendentes</span></div>
           <div class="sheet"><b>Limitações</b><span>Itens sem código ou preço</span></div>
           <div class="sheet"><b>Parâmetros</b><span>Decisões e versões</span></div>
         </div>
-        <div class="form-foot"><button class="btn" data-v="abrir">Importar .xlsx</button><button class="btn" data-v="juntar">Juntar planilhas</button><button class="btn pri">Baixar .xlsx</button></div>
+        <div class="form-foot"><button class="btn" data-v="abrir">Importar .xlsx</button><button class="btn" data-v="juntar">Juntar planilhas</button><button class="btn pri" id="exp-baixar">Baixar .xlsx</button></div>
       </div>
     </section>
 
@@ -679,51 +684,796 @@ footer{max-width:1180px;margin:0 auto;padding:18px 16px 32px;color:var(--muted);
 <footer>
   <span><b>OncoCusto</b> · Idealização, propriedade e manutenção: <a href="https://github.com/isabelagsantos" target="_blank" rel="noopener">Isabela Santos</a></span>
   <span>Site estático · cálculo no navegador</span>
-  <span>SIGTAP —</span><span>BPS —</span><span>Versão do site —</span>
+  <span id="ft-sigtap">SIGTAP —</span><span id="ft-bps">BPS —</span><span id="ft-versao">Versão do site —</span>
 </footer>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
-/* ---------- Conteúdo repetido ---------- */
-const SIGLAS = [
-  ["N","Normal: sem observação especial"],
-  ["AP","Apenas no prontuário, não nos exames"],
-  ["IA","Incluído na AIH"],
-  ["AE","Apenas nos exames, não no prontuário"],
-  ["D","Dúvida: revisar com outro profissional"],
-  ["DP","Duplicado no prontuário"],
-  ["DE","Duplicado nos exames"],
-  ["FI","Fora da instituição"],
-  ["NC","Não em conjunto: depois do resto do conjunto"],
-  ["RP","Realizado só no prontuário"],
-  ["SC","Sem correspondência em outra aba"],
-  ["SS","Sem SIGTAP no prontuário"]
-];
-document.querySelectorAll("[data-siglas]").forEach(el => {
-  el.innerHTML = "<ul class='siglas'>" + SIGLAS.map(([s,d]) => `<li><b>${s}</b><span>${d}</span></li>`).join("") + "</ul>";
+/* =====================================================================
+   CONFIGURAÇÃO DAS BASES
+   Ao publicar uma competência ou base nova, acrescente uma linha aqui.
+   A primeira de cada lista é a padrão para projetos novos.
+   ===================================================================== */
+const CONFIG = {
+  versaoSite: "0.2 · teste das bases (sem regras)",
+  pastas: ["dados/", ""],               // procura primeiro em dados/, depois na raiz do repositório
+  sigtap: {
+    "10/2026": { proc: "sigtap_procedimentos_10_2026.json", compat: "sigtap_compatibilidade_10_2026.json" },
+    "09/2026": { proc: "sigtap_procedimentos_09_2026.json", compat: "sigtap_compatibilidade_09_2026.json" }
+  },
+  bps: {
+    "10/2026": { mediana: "bps_mediana_10_2026.json", catmat: "catmat_item_10_2026.json" }
+  },
+  ibge: "ibge_municipio_2025.json",
+  situacao: "situacao.json",
+  meta: "meta_10_2026.json"
+};
+
+/* ---------- Utilidades ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const norm = s => (s ?? "").toString().normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
+const esc = s => (s ?? "").toString().replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtCod = c => c && c.length === 10 ? `${c.slice(0,2)}.${c.slice(2,4)}.${c.slice(4,6)}.${c.slice(6,9)}-${c[9]}` : (c || "");
+const brl = (v, dec = 2) => v == null || isNaN(v) ? "—" : Number(v).toLocaleString("pt-BR", {style:"currency", currency:"BRL", minimumFractionDigits:2, maximumFractionDigits:dec});
+const num = v => Number(v).toLocaleString("pt-BR");
+const dataBR = d => /^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d.split("-").reverse().join("/") : (d || "—");
+const hoje = () => new Date().toISOString().slice(0, 10);
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+let toastT;
+function toast(msg, err){ const t = $("#toast"); t.textContent = msg; t.classList.toggle("err", !!err); t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 3200); }
+
+/* ---------- Estado do projeto (salvo no navegador) ---------- */
+const LS_KEY = "oncocusto_rascunho_v1";
+let state = { projeto: null, procs: [], ints: [], meds: [], atualizado: null };
+function salvarLocal(){
+  state.atualizado = new Date().toISOString();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+}
+function lerLocal(){
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY) || "null"); return s && typeof s === "object" ? s : null; } catch(e){ return null; }
+}
+const compAtual = () => state.projeto?.comp_sigtap || Object.keys(CONFIG.sigtap)[0];
+const bpsAtual  = () => state.projeto?.base_bps    || Object.keys(CONFIG.bps)[0];
+const minCompras = () => Math.max(1, parseInt(state.projeto?.min_compras, 10) || 3);
+
+/* =====================================================================
+   CARREGAMENTO DAS BASES
+   ===================================================================== */
+const DB = { sigtap: {}, bps: {}, ibge: null, ufs: [], munByUF: new Map(), regiaoUF: {}, situacao: null, meta: null };
+const STATUS = [];      // linhas da tabela "Bases de referência"
+const cache = {};
+let PASTA = null;
+
+async function getJSON(arquivo){
+  if (cache[arquivo]) return cache[arquivo];
+  const ordem = PASTA !== null ? [PASTA, ...CONFIG.pastas.filter(p => p !== PASTA)] : CONFIG.pastas;
+  let erro;
+  for (const p of ordem){
+    try {
+      const r = await fetch(p + arquivo, {cache: "no-cache"});
+      if (!r.ok){ erro = new Error(`não encontrado (HTTP ${r.status})`); continue; }
+      const d = await r.json();
+      PASTA = p; cache[arquivo] = d; return d;
+    } catch(e){ erro = e instanceof SyntaxError ? new Error("arquivo não é um JSON válido") : e; }
+  }
+  if (location.protocol === "file:") erro = new Error("abra pelo endereço do GitHub Pages (o navegador bloqueia leitura de arquivos locais)");
+  throw erro || new Error("não encontrado");
+}
+
+async function carregar(rotulo, arquivo, processa){
+  const linha = { rotulo, arquivo, ok: null };
+  const i = STATUS.findIndex(s => s.rotulo === rotulo);
+  if (i >= 0) STATUS[i] = linha; else STATUS.push(linha);
+  renderStatus();
+  try {
+    const d = await getJSON(arquivo);
+    linha.n = processa(d);
+    linha.ok = true;
+  } catch(e){
+    linha.ok = false; linha.erro = e.message || String(e);
+    console.error("[OncoCusto]", arquivo, e);
+  }
+  renderStatus();
+  return linha.ok;
+}
+
+function renderStatus(){
+  const body = $("#bases-status");
+  body.innerHTML = STATUS.map(s => `<tr>
+    <td>${esc(s.rotulo)}</td>
+    <td class="mono">${esc((PASTA ?? "") + s.arquivo)}</td>
+    <td class="val">${s.ok ? num(s.n) : "—"}</td>
+    <td>${s.ok === null ? '<span class="dot"></span>Carregando…' : s.ok ? '<span class="dot ok"></span>Carregada' : `<span class="dot err"></span>Erro: ${esc(s.erro)}`}</td>
+  </tr>`).join("");
+  const ok = STATUS.filter(s => s.ok).length, err = STATUS.filter(s => s.ok === false).length, load = STATUS.filter(s => s.ok === null).length;
+  $("#bases-resumo").textContent = load ? `Carregando… (${ok} de ${STATUS.length})` : err ? `${ok} carregadas · ${err} com erro` : `${ok} bases carregadas`;
+}
+
+async function carregarSigtap(comp){
+  if (DB.sigtap[comp]?.pronto) return DB.sigtap[comp];
+  const cfg = CONFIG.sigtap[comp];
+  if (!cfg) return null;
+  const s = DB.sigtap[comp] = { proc: [], byCode: new Map(), compat: new Map(), pronto: false };
+  await Promise.all([
+    carregar(`SIGTAP ${comp} · procedimentos`, cfg.proc, d => {
+      d.forEach(p => { p._n = norm(p.no_procedimento); s.byCode.set(p.co_procedimento, p); });
+      s.proc = d; return d.length;
+    }),
+    carregar(`SIGTAP ${comp} · compatibilidades`, cfg.compat, d => {
+      d.forEach(r => { if (!s.compat.has(r.co_principal)) s.compat.set(r.co_principal, []); s.compat.get(r.co_principal).push(r); });
+      return d.length;
+    })
+  ]);
+  s.pronto = true;
+  return s;
+}
+
+async function carregarBPS(base){
+  if (DB.bps[base]?.pronto) return DB.bps[base];
+  const cfg = CONFIG.bps[base];
+  if (!cfg) return null;
+  const b = DB.bps[base] = { idx: new Map(), itens: [], byCat: new Map(), comPreco: new Set(), periodo: null, pronto: false };
+  await Promise.all([
+    carregar(`BPS ${base} · medianas`, cfg.mediana, d => {
+      d.forEach(r => {
+        b.comPreco.add(r.co_catmat);
+        const loc = r.nivel === "municipio" ? `${r.sg_uf}|${norm(r.no_municipio)}`
+                  : r.nivel === "uf" ? r.sg_uf
+                  : r.nivel === "regiao" ? norm(r.regiao) : "";
+        b.idx.set(`${r.co_catmat}|${r.un_fornecimento}|${r.nivel}|${loc}`, r);
+        if (!b.periodo && r.periodo) b.periodo = r.periodo;
+      });
+      return d.length;
+    }),
+    carregar(`BPS ${base} · itens CATMAT`, cfg.catmat, d => {
+      d.forEach(r => {
+        let g = b.byCat.get(r.co_catmat);
+        if (!g){ g = { co_catmat: r.co_catmat, ds_item: r.ds_item, _n: norm(r.ds_item), unidades: [] }; b.byCat.set(r.co_catmat, g); b.itens.push(g); }
+        g.unidades.push(r);
+      });
+      return d.length;
+    })
+  ]);
+  b.pronto = true;
+  return b;
+}
+
+async function carregarTudo(){
+  await Promise.all([
+    carregar("Municípios IBGE 2025", CONFIG.ibge, d => {
+      DB.ibge = d;
+      d.forEach(m => {
+        if (!DB.munByUF.has(m.sg_uf)) DB.munByUF.set(m.sg_uf, []);
+        DB.munByUF.get(m.sg_uf).push(m);
+        DB.regiaoUF[m.sg_uf] = norm(m.regiao);
+      });
+      DB.munByUF.forEach(l => l.sort((a, b) => a.no_municipio.localeCompare(b.no_municipio, "pt-BR")));
+      DB.ufs = [...DB.munByUF.keys()].sort();
+      return d.length;
+    }),
+    carregar("Situações", CONFIG.situacao, d => { DB.situacao = d; return d.length; }),
+    carregar("Metadados", CONFIG.meta, d => { DB.meta = d; return Object.keys(d).length; }),
+    carregarSigtap(compAtual()),
+    carregarBPS(bpsAtual())
+  ]);
+  popularUFs();
+  renderSituacoes();
+  aplicarProjetoNoFormulario();
+  recalcular();
+  renderTudo();
+}
+
+/* =====================================================================
+   LISTAS (UF, município, competências, situações)
+   ===================================================================== */
+function popularUFs(){
+  $$("select[data-uf]").forEach(sel => {
+    const v = sel.value;
+    sel.innerHTML = `<option value="">Selecione</option>` + DB.ufs.map(u => `<option>${u}</option>`).join("");
+    sel.value = v;
+  });
+}
+function popularMun(sel, uf, valor){
+  const lista = DB.munByUF.get(uf) || [];
+  sel.innerHTML = uf ? `<option value="">Selecione</option>` + lista.map(m => `<option value="${esc(m.no_municipio)}">${esc(m.no_municipio)}</option>`).join("")
+                     : `<option value="">Selecione a UF</option>`;
+  if (valor != null) sel.value = valor;
+}
+function popularBases(){
+  $$("select[data-comp]").forEach(sel => { sel.innerHTML = Object.keys(CONFIG.sigtap).map(c => `<option>${c}</option>`).join(""); sel.value = compAtual(); });
+  $$("select[data-bps]").forEach(sel => { sel.innerHTML = Object.keys(CONFIG.bps).map(c => `<option>${c}</option>`).join(""); sel.value = bpsAtual(); });
+}
+
+const SIGLAS_PADRAO = [["N","Normal"],["AP","Apenas no prontuário"],["IA","Incluído na AIH"],["AE","Apenas nos exames"],["D","Dúvida"],["DP","Duplicado no prontuário"],["DE","Duplicado nos exames"],["FI","Fora da instituição"],["NC","Não em conjunto"],["RP","Realizado só no prontuário"],["SC","Sem correspondência"],["SS","Sem SIGTAP no prontuário"]];
+function siglas(){ return DB.situacao ? DB.situacao.map(s => [s.sigla, s.nome, s.descricao]) : SIGLAS_PADRAO.map(([s, n]) => [s, n, ""]); }
+function renderSituacoes(){
+  const l = siglas();
+  $$("[data-siglas]").forEach(el => {
+    el.innerHTML = "<ul class='siglas'>" + l.map(([s, n, d]) => `<li><b>${esc(s)}</b><span>${esc(n)}${d ? ": " + esc(d) : ""}</span></li>`).join("") + "</ul>";
+  });
+  $$("[data-tags]").forEach(el => {
+    el.innerHTML = l.map(([s, n]) => `<span class="tag" data-s="${esc(s)}" title="${esc(n)}">${esc(s)}</span>`).join("");
+  });
+  const fs = $("#fl-sit"); fs.innerHTML = `<option value="">Situação</option>` + l.map(([s, n]) => `<option value="${esc(s)}">${esc(s)} · ${esc(n)}</option>`).join("");
+}
+
+/* =====================================================================
+   LER E PREENCHER FORMULÁRIOS
+   ===================================================================== */
+function ler(view){
+  const o = {};
+  $$("[data-k]", view).forEach(el => {
+    const k = el.dataset.k;
+    if (el.classList.contains("seg")) { o[k] = $("button.on", el)?.textContent.trim() || ""; return; }
+    if (el.type === "checkbox") { o[k] = el.checked; return; }
+    const f = el.closest(".f");
+    const unk = f ? $$("input[data-unk]", f).find(c => c.checked) : null;
+    o[k] = unk ? unk.dataset.unk : el.value.trim();
+  });
+  o.situacao = $$(".tag.on", view).map(t => t.dataset.s);
+  return o;
+}
+function preencher(view, obj){
+  $$("[data-k]", view).forEach(el => {
+    const k = el.dataset.k; if (!(k in obj)) return;
+    const v = obj[k];
+    if (el.classList.contains("seg")) { $$("button", el).forEach(b => b.classList.toggle("on", b.textContent.trim() === v)); return; }
+    if (el.type === "checkbox") { el.checked = !!v; return; }
+    if (el.dataset.uf !== undefined) { el.value = v || ""; const alvo = document.getElementById(el.dataset.munTarget); if (alvo) popularMun(alvo, v, obj.municipio || ""); return; }
+    if (el.dataset.k === "municipio" && view.querySelector("[data-uf]")) return; // já preenchido junto com a UF
+    el.value = v ?? "";
+  });
+}
+function limpar(view){
+  $$("[data-k]", view).forEach(el => {
+    if (el.disabled) return;                       // campos travados ("mesmo…", "desconhecida") ficam
+    if (el.tagName === "SELECT") { el.selectedIndex = 0; if (el.dataset.uf !== undefined) { const alvo = document.getElementById(el.dataset.munTarget); if (alvo) popularMun(alvo, ""); } }
+    else if (el.dataset.k === "quantidade") el.value = 1;
+    else el.value = "";
+  });
+  $$(".tag.on", view).forEach(t => t.classList.remove("on"));
+}
+
+/* "Mesmo… da entrada anterior" e "cadastrado em Projeto" copiam o valor */
+function aplicarTrava(cb){
+  const f = cb.closest(".f");
+  const field = $("[data-k]", f);
+  if (!field || !cb.checked) return;
+  if (cb.dataset.same !== undefined){
+    const lista = state[cb.closest("[data-form]").dataset.form] || [];
+    const ultimo = lista[lista.length - 1];
+    if (!ultimo){ toast("Ainda não há entrada anterior neste projeto."); cb.checked = false; return; }
+    field.value = ultimo[field.dataset.k] ?? "";
+  }
+  if (cb.dataset.proj){
+    const v = state.projeto?.[cb.dataset.proj];
+    if (!v){ toast("Defina a UF e o município padrão na tela Projeto."); cb.checked = false; return; }
+    if (cb.dataset.proj === "uf"){ field.value = v; const alvo = document.getElementById(field.dataset.munTarget); if (alvo) popularMun(alvo, v, ""); }
+    else {
+      const ufSel = $("select[data-uf]", cb.closest(".view"));
+      if (ufSel && ufSel.value !== state.projeto.uf && !ufSel.disabled) ufSel.value = state.projeto.uf || "";
+      popularMun(field, ufSel?.value || state.projeto.uf, v);
+    }
+  }
+  if (cb.dataset.unk !== undefined) field.value = "";
+  field.dispatchEvent(new Event("change", {bubbles: true}));
+}
+
+/* =====================================================================
+   PROJETO
+   ===================================================================== */
+function aplicarProjetoNoFormulario(){
+  popularBases();
+  const v = $("#v-projeto");
+  if (state.projeto) preencher(v, state.projeto);
+  else { $("[data-k=bps_ref]", v).value = hoje(); }
+  $("#vig").classList.toggle("open", ($("#hab button.on")?.hasAttribute("data-hab")));
+  renderCabecalho();
+}
+function renderCabecalho(){
+  const p = state.projeto;
+  $("#pill-proj").textContent = p ? `${p.titulo || "Projeto sem título"} · ${p.usuario || "sem usuário"}` : "Nenhum projeto aberto";
+  $("#ft-sigtap").textContent = `SIGTAP ${compAtual()}`;
+  const b = DB.bps[bpsAtual()];
+  $("#ft-bps").textContent = `BPS ${bpsAtual()}${b?.periodo ? " (" + b.periodo + ")" : ""}`;
+  $("#ft-versao").textContent = `Versão do site ${CONFIG.versaoSite}`;
+  $("#proc-comp-lbl").textContent = `· SIGTAP ${compAtual()}`;
+  $("#med-bps-lbl").textContent = `· BPS ${bpsAtual()}`;
+  const slug = norm(p?.titulo || "titulo-do-projeto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "projeto";
+  $("#exp-nome").textContent = `${slug}_${hoje()}.xlsx`;
+}
+$("#proj-salvar").addEventListener("click", async () => {
+  const p = ler($("#v-projeto"));
+  delete p.situacao;
+  const falta = [["titulo","Título"],["nome_uso","Nome de uso"],["centro","Centro"],["usuario","Usuário"]].filter(([k]) => !p[k]).map(([, n]) => n);
+  if (falta.length) { toast("Preencha: " + falta.join(", "), true); return; }
+  const mudouBase = state.projeto && (state.projeto.comp_sigtap !== p.comp_sigtap || state.projeto.base_bps !== p.base_bps);
+  state.projeto = { ...p, criado_em: state.projeto?.criado_em || new Date().toISOString() };
+  salvarLocal();
+  await Promise.all([carregarSigtap(compAtual()), carregarBPS(bpsAtual())]);
+  popularBases(); recalcular(); renderTudo();
+  toast(mudouBase ? "Projeto salvo e recalculado com as novas bases." : "Projeto salvo.");
+  show("procedimentos");
 });
-document.querySelectorAll("[data-tags]").forEach(el => {
-  el.innerHTML = SIGLAS.map(([s,d]) => `<span class="tag" title="${d}">${s}</span>`).join("");
+
+/* =====================================================================
+   BUSCA COM SUGESTÕES
+   ===================================================================== */
+function autocomplete(input, buscar, render, escolher){
+  const list = document.createElement("div");
+  list.className = "ac-list hidden";
+  input.insertAdjacentElement("afterend", list);
+  let itens = [], hi = -1;
+  const fechar = () => list.classList.add("hidden");
+  const marcar = () => $$(".ac-item", list).forEach((el, i) => { el.classList.toggle("hi", i === hi); if (i === hi) el.scrollIntoView({block: "nearest"}); });
+  const pegar = i => { fechar(); escolher(itens[i]); };
+  const abrir = () => {
+    const q = input.value.trim();
+    if (q.length < 2) { fechar(); return; }
+    itens = buscar(q); hi = itens.length ? 0 : -1;
+    list.innerHTML = itens.length ? itens.map((it, i) => `<div class="ac-item${i === hi ? " hi" : ""}" data-i="${i}">${render(it)}</div>`).join("")
+                                  : `<div class="ac-empty">Nada encontrado${q.length < 3 ? " · digite mais letras" : ""}</div>`;
+    list.classList.remove("hidden");
+  };
+  input.addEventListener("input", debounce(abrir, 120));
+  input.addEventListener("focus", () => { if (input.value.trim().length >= 2 && !input.dataset.escolhido) abrir(); });
+  input.addEventListener("keydown", e => {
+    if (list.classList.contains("hidden")) return;
+    if (e.key === "ArrowDown") { hi = Math.min(hi + 1, itens.length - 1); marcar(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { hi = Math.max(hi - 1, 0); marcar(); e.preventDefault(); }
+    else if (e.key === "Enter" && hi >= 0) { e.preventDefault(); pegar(hi); }
+    else if (e.key === "Escape") fechar();
+  });
+  list.addEventListener("mousedown", e => { const el = e.target.closest(".ac-item"); if (el) { e.preventDefault(); pegar(+el.dataset.i); } });
+  input.addEventListener("blur", () => setTimeout(fechar, 150));
+}
+function buscaGenerica(lista, q, codigoDe, max = 40){
+  const soCodigo = /^[\d.\-\s]+$/.test(q);
+  const dig = q.replace(/\D/g, "");
+  const palavras = norm(q).split(/\s+/).filter(Boolean);
+  const out = [];
+  for (const it of lista){
+    const ok = soCodigo ? codigoDe(it).startsWith(dig) : palavras.every(w => it._n.includes(w));
+    if (ok) { out.push(it); if (out.length >= max) break; }
+  }
+  return out;
+}
+
+/* =====================================================================
+   PROCEDIMENTOS
+   ===================================================================== */
+let selProc = null;
+const procBusca = $("#proc-busca");
+autocomplete(procBusca,
+  q => { const s = DB.sigtap[compAtual()]; return s?.pronto ? buscaGenerica(s.proc, q, p => p.co_procedimento) : []; },
+  p => `<span class="mono">${fmtCod(p.co_procedimento)}</span><span>${esc(p.no_procedimento)}</span><small>${esc(p.classificacao || "")}</small>`,
+  p => escolherProc(p)
+);
+procBusca.addEventListener("input", () => { if (selProc && procBusca.value !== procBusca.dataset.escolhido) { selProc = null; procBusca.dataset.escolhido = ""; renderProcInfo(); } });
+
+function escolherProc(p){
+  selProc = p;
+  procBusca.value = procBusca.dataset.escolhido = `${fmtCod(p.co_procedimento)} — ${p.no_procedimento}`;
+  renderProcInfo();
+}
+function valorTabela(p, qtd){
+  if (!p) return null;
+  const unit = (p.vl_sa || 0) > 0 ? p.vl_sa : (p.vl_tot_hosp || 0);
+  return unit * (Number(qtd) || 1);
+}
+function renderProcInfo(){
+  const box = $("#proc-info");
+  if (!selProc) { box.classList.add("hidden"); box.innerHTML = ""; return; }
+  const p = selProc;
+  const compat = DB.sigtap[compAtual()]?.compat.get(p.co_procedimento) || [];
+  const kv = [["Classificação", p.classificacao], ["Complexidade", p.complexidade], ["Modalidade", p.modalidade],
+              ["SA", brl(p.vl_sa)], ["Total ambulatorial", brl(p.vl_tot_amb)], ["SH", brl(p.vl_sh)], ["SP", brl(p.vl_sp)], ["Total hospitalar", brl(p.vl_tot_hosp)]];
+  box.innerHTML = `<div class="sel" style="margin-top:8px">
+    <div class="sel-top"><span class="mono">${fmtCod(p.co_procedimento)}</span><b>${esc(p.no_procedimento)}</b></div>
+    <div class="kv">${kv.map(([k, v]) => `<div><small>${k}</small><b>${esc(v ?? "—")}</b></div>`).join("")}</div>
+    ${p.vl_sa == null && p.vl_tot_hosp == null ? `<div class="hint" style="margin-top:8px">⚠ Procedimento novo nesta competência: a base ainda não traz os valores.</div>` : ""}
+    <details class="compat"><summary>Compatibilidades em ${compAtual()}: ${num(compat.length)} ${compat.length === 1 ? "relação" : "relações"} como principal</summary>
+      ${compat.length ? `<div class="table-wrap"><table><thead><tr><th>Código</th><th>Procedimento</th><th>Tipo</th><th>Qtd.</th><th>Desde</th></tr></thead><tbody>
+        ${compat.slice(0, 200).map(r => { const c = DB.sigtap[compAtual()].byCode.get(r.co_compativel);
+          return `<tr><td class="mono">${fmtCod(r.co_compativel)}</td><td class="wrap">${esc(c?.no_procedimento || "—")}</td><td class="wrap">${esc(r.tipo)}</td><td>${r.qtd ?? "—"}</td><td>${esc(r.desde || "—")}</td></tr>`; }).join("")}
+      </tbody></table></div>${compat.length > 200 ? `<div class="help" style="margin-top:6px">Mostrando 200 de ${num(compat.length)}.</div>` : ""}` : `<div class="help" style="margin-top:6px">Nenhuma relação cadastrada para este código.</div>`}
+    </details>
+  </div>`;
+  box.classList.remove("hidden");
+}
+
+/* Local do ato: dentro do período de uma internação do mesmo prontuário → Hospitalar */
+function internacaoDe(pront, data){
+  if (!pront || !/^\d{4}-\d{2}-\d{2}$/.test(data || "")) return null;
+  return state.ints.find(i => i.prontuario === pront && i.data_entrada && i.data_alta && i.data_entrada <= data && data <= i.data_alta) || null;
+}
+function atualizarLocal(){
+  const v = $("#v-procedimentos");
+  const pront = $("[data-k=prontuario]", v).value.trim();
+  const data = $("[data-k=data_realizacao]", v).value;
+  const i = internacaoDe(pront, data);
+  $("#proc-local").innerHTML = (i ? `Hospitalar · AIH ${esc(i.aih)}` : "Ambulatorial") + `<small>Preenchido pelo site: compara a data de realização com as internações cadastradas</small>`;
+}
+$("#v-procedimentos").addEventListener("input", e => { if (e.target.matches("[data-k=prontuario],[data-k=data_realizacao]")) atualizarLocal(); });
+$("#v-procedimentos").addEventListener("change", e => { if (e.target.matches("[data-k=prontuario],[data-k=data_realizacao]")) atualizarLocal(); });
+
+function popularAIH(){
+  const sel = $("#proc-aih"), v = sel.value;
+  sel.innerHTML = `<option value="">Nenhuma</option>` + state.ints.map(i => `<option value="${esc(i.aih)}">${esc(i.aih)} · ${esc(i.prontuario)}</option>`).join("");
+  sel.value = v;
+}
+
+$("#proc-salvar").addEventListener("click", () => {
+  if (!state.projeto) { toast("Crie o projeto antes de registrar.", true); show("projeto"); return; }
+  const v = $("#v-procedimentos");
+  const e = ler(v);
+  if (!selProc) { toast("Escolha um procedimento da lista.", true); procBusca.focus(); return; }
+  if (!e.prontuario) { toast("Informe o prontuário.", true); return; }
+  Object.assign(e, { id: uid(), usuario: state.projeto.usuario, co_procedimento: selProc.co_procedimento, criado_em: new Date().toISOString() });
+  state.procs.push(e);
+  recalcular(); salvarLocal(); renderTudo();
+  limpar(v); selProc = null; procBusca.value = ""; procBusca.dataset.escolhido = ""; renderProcInfo(); atualizarLocal();
+  procBusca.focus();
+  toast("Procedimento salvo.");
 });
+
+/* =====================================================================
+   INTERNAÇÕES
+   ===================================================================== */
+$("#int-salvar").addEventListener("click", () => {
+  if (!state.projeto) { toast("Crie o projeto antes de registrar.", true); show("projeto"); return; }
+  const v = $("#v-internacoes");
+  const e = ler(v);
+  if (!e.prontuario || !e.aih) { toast("Informe o prontuário e o nº da AIH.", true); return; }
+  if (state.ints.some(i => i.prontuario === e.prontuario && i.aih === e.aih)) { toast("Esta AIH já está cadastrada para este prontuário.", true); return; }
+  Object.assign(e, { id: uid(), usuario: state.projeto.usuario, criado_em: new Date().toISOString() });
+  state.ints.push(e);
+  recalcular(); salvarLocal(); renderTudo();
+  limpar(v);
+  toast("Internação salva.");
+});
+
+/* =====================================================================
+   MEDICAMENTOS
+   ===================================================================== */
+let selMed = null;
+const medBusca = $("#med-busca");
+autocomplete(medBusca,
+  q => { const b = DB.bps[bpsAtual()]; return b?.pronto ? buscaGenerica(b.itens, q, it => it.co_catmat) : []; },
+  it => `<span class="mono">${esc(it.co_catmat)}</span><span>${esc(it.ds_item)}</span><small>${DB.bps[bpsAtual()]?.comPreco.has(it.co_catmat) ? `${it.unidades.length} ${it.unidades.length === 1 ? "unidade" : "unidades"}` : "sem preço no BPS"}</small>`,
+  it => escolherMed(it)
+);
+medBusca.addEventListener("input", () => { if (selMed && medBusca.value !== medBusca.dataset.escolhido) { selMed = null; medBusca.dataset.escolhido = ""; renderMedInfo(); } });
+
+function escolherMed(it){
+  selMed = it;
+  medBusca.value = medBusca.dataset.escolhido = `${it.co_catmat} — ${it.ds_item}`;
+  renderMedInfo();
+}
+function renderMedInfo(){
+  const un = $("#med-un");
+  if (!selMed) {
+    un.innerHTML = `<option value="">Escolha o medicamento</option>`;
+    $("#med-info").classList.add("hidden");
+  } else {
+    un.innerHTML = selMed.unidades.map(u => `<option value="${esc(u.un_fornecimento)}">${esc(u.un_fornecimento)}${u.un_medida_capacidade ? " · " + esc(u.un_medida_capacidade) : ""}</option>`).join("");
+    $("#med-info").innerHTML = `<div class="sel" style="margin-top:8px"><div class="sel-top"><span class="mono">CATMAT ${esc(selMed.co_catmat)}</span><b>${esc(selMed.ds_item)}</b></div></div>`;
+    $("#med-info").classList.remove("hidden");
+  }
+  atualizarPreco();
+}
+
+/* Preço: procura município → UF → região → Brasil, com o mínimo de compras do projeto */
+function precoBPS(catmat, un, uf, mun){
+  const b = DB.bps[bpsAtual()];
+  if (!b?.pronto || !catmat || !un) return null;
+  const k = (nivel, loc) => `${catmat}|${un}|${nivel}|${loc}`;
+  const tent = [];
+  if (uf && mun && !/^(Selecione|N[aã]o)/.test(mun)) tent.push(["Município", k("municipio", `${uf}|${norm(mun)}`)]);
+  if (uf) tent.push(["UF", k("uf", uf)]);
+  if (uf && DB.regiaoUF[uf]) tent.push(["Região", k("regiao", DB.regiaoUF[uf])]);
+  tent.push(["Brasil", k("brasil", "")]);
+  for (const [nome, chave] of tent){
+    const r = b.idx.get(chave);
+    if (r && r.n_compras >= minCompras()) return { ...r, nivelNome: nome };
+  }
+  return null;
+}
+function atualizarPreco(){
+  const v = $("#v-medicamentos");
+  const box = $("#med-preco");
+  if (!selMed) { box.innerHTML = `R$ —<small>Escolha o medicamento</small>`; return; }
+  const un = $("#med-un").value, uf = $("#med-uf").value, mun = $("#med-mun").value;
+  const qtd = Number($("#med-qtd").value) || 0;
+  const r = precoBPS(selMed.co_catmat, un, uf, mun);
+  box.innerHTML = r
+    ? `${brl(r.mediana, 4)} por ${esc(un.toLowerCase())} · total ${brl(r.mediana * qtd)}<small>Nível: ${r.nivelNome}${r.nivel === "municipio" ? " (" + esc(r.no_municipio) + ")" : r.nivel === "uf" ? " (" + esc(r.sg_uf) + ")" : r.nivel === "regiao" ? " (" + esc(r.regiao) + ")" : ""} · compras: ${r.n_compras} · período: ${esc(r.periodo || "—")}</small>`
+    : `Sem registro de preço<small>Nenhum nível com ${minCompras()} compras ou mais para esta unidade${uf ? "" : " · escolha a UF para buscar por local"}</small>`;
+}
+$("#v-medicamentos").addEventListener("change", e => { if (e.target.matches("#med-un,#med-uf,#med-mun,#med-qtd")) atualizarPreco(); });
+$("#med-qtd").addEventListener("input", atualizarPreco);
+
+$("#med-salvar").addEventListener("click", () => {
+  if (!state.projeto) { toast("Crie o projeto antes de registrar.", true); show("projeto"); return; }
+  const v = $("#v-medicamentos");
+  const e = ler(v);
+  if (!selMed) { toast("Escolha um medicamento da lista.", true); medBusca.focus(); return; }
+  if (!e.prontuario) { toast("Informe o prontuário.", true); return; }
+  if (!e.uf) { toast("Informe a UF de retirada.", true); return; }
+  Object.assign(e, { id: uid(), usuario: state.projeto.usuario, codigo_catmat: selMed.co_catmat, criado_em: new Date().toISOString() });
+  state.meds.push(e);
+  recalcular(); salvarLocal(); renderTudo();
+  limpar(v); selMed = null; medBusca.value = ""; medBusca.dataset.escolhido = ""; renderMedInfo();
+  medBusca.focus();
+  toast("Medicamento salvo.");
+});
+
+/* UF → municípios em qualquer tela */
+document.addEventListener("change", e => {
+  const sel = e.target.closest("select[data-uf]");
+  if (!sel) return;
+  const alvo = document.getElementById(sel.dataset.munTarget);
+  if (alvo && !alvo.disabled) popularMun(alvo, sel.value, "");
+  if (sel.id === "med-uf") atualizarPreco();
+});
+
+/* =====================================================================
+   RECÁLCULO (só valores de tabela; as regras entram depois)
+   ===================================================================== */
+function recalcular(){
+  const s = DB.sigtap[compAtual()];
+  state.procs.forEach(e => {
+    const p = s?.byCode.get(e.co_procedimento);
+    e.competencia = compAtual();
+    e.no_procedimento = p?.no_procedimento ?? e.no_procedimento ?? "";
+    e.classificacao = p?.classificacao ?? "";
+    e.vl_sa = p?.vl_sa ?? null; e.vl_sh = p?.vl_sh ?? null; e.vl_sp = p?.vl_sp ?? null; e.vl_tot_hosp = p?.vl_tot_hosp ?? null;
+    const i = internacaoDe(e.prontuario, e.data_realizacao);
+    e.local_ato = i ? "Hospitalar" : "Ambulatorial";
+    e.aih_do_periodo = i?.aih || "";
+    e.valor_tabela = p ? valorTabela(p, e.quantidade) : null;
+    e.aviso = !s?.pronto ? "Base SIGTAP não carregada"
+            : !p ? `Código não existe em ${compAtual()}`
+            : (p.vl_sa == null && p.vl_tot_hosp == null) ? "Sem valor na base" : "";
+  });
+  state.meds.forEach(e => {
+    const r = precoBPS(e.codigo_catmat, e.unidade, e.uf, e.municipio);
+    const it = DB.bps[bpsAtual()]?.byCat.get(e.codigo_catmat);
+    e.medicamento = it?.ds_item ?? e.medicamento ?? "";
+    e.base_bps = bpsAtual();
+    e.nivel_preco = r?.nivelNome || ""; e.n_compras = r?.n_compras ?? ""; e.periodo_bps = r?.periodo || "";
+    e.valor_unitario = r?.mediana ?? null;
+    const q = Number(e.quantidade) || 0;
+    e.valor_total = r ? r.mediana * q : null;
+    e.aviso = !DB.bps[bpsAtual()]?.pronto ? "Base BPS não carregada" : !r ? "Sem registro de preço" : "";
+  });
+  state.ints.forEach(e => {
+    e.n_procedimentos = state.procs.filter(p => p.prontuario === e.prontuario && p.aih_do_periodo === e.aih).length;
+    e.aviso = !e.data_entrada || !e.data_alta ? "Faltam datas" : e.data_alta < e.data_entrada ? "Alta antes da entrada" : "";
+  });
+}
+
+/* =====================================================================
+   TABELAS
+   ===================================================================== */
+const sit = e => (e.situacao && e.situacao.length ? e.situacao.join(", ") : "N");
+const avisoCel = a => a ? `<span class="dot"></span>${esc(a)}` : `<span class="ok">—</span>`;
+const btnExcluir = (tipo, id) => `<button class="btn sm" data-del="${tipo}:${id}">Excluir</button>`;
+const vazio = (cols, txt) => `<tr><td colspan="${cols}" class="empty-row">${txt}</td></tr>`;
+
+function linhasRevisao(){
+  const L = [];
+  state.procs.forEach(e => L.push({ tipo: "proc", e, pac: e.prontuario, data: e.data_realizacao, cod: fmtCod(e.co_procedimento), desc: e.no_procedimento, local: e.local_ato + (e.aih_do_periodo ? " · " + e.aih_do_periodo : ""), valor: e.valor_tabela, aviso: e.aviso }));
+  state.meds.forEach(e => L.push({ tipo: "med", e, pac: e.prontuario, data: e.data_retirada, cod: e.codigo_catmat, desc: `${e.medicamento} (${e.quantidade} ${String(e.unidade || "").toLowerCase()})`, local: "Farmácia", valor: e.valor_total, aviso: e.aviso }));
+  return L.sort((a, b) => (a.pac || "").localeCompare(b.pac || "") || (a.data || "").localeCompare(b.data || ""));
+}
+
+function renderTudo(){
+  renderCabecalho();
+  popularAIH();
+  /* Procedimentos: últimas 5 */
+  const ps = state.procs.slice(-5).reverse();
+  $("[data-rows=proc]").innerHTML = ps.length ? ps.map(e => `<tr${e.aviso ? ' class="warn"' : ""}>
+    <td>${esc(e.prontuario)}</td><td>${dataBR(e.data_realizacao)}</td><td class="wrap"><span class="mono">${fmtCod(e.co_procedimento)}</span> ${esc(e.no_procedimento)}</td>
+    <td>${esc(e.local_ato)}</td><td>${esc(sit(e))}</td><td class="val">${brl(e.valor_tabela)}</td><td>${avisoCel(e.aviso)}</td><td>${btnExcluir("procs", e.id)}</td></tr>`).join("")
+    : vazio(8, "Nenhum procedimento registrado ainda.");
+  /* Medicamentos: últimas 5 */
+  const ms = state.meds.slice(-5).reverse();
+  $("[data-rows=med]").innerHTML = ms.length ? ms.map(e => `<tr${e.aviso ? ' class="warn"' : ""}>
+    <td>${esc(e.prontuario)}</td><td>${dataBR(e.data_retirada)}</td><td class="wrap">${esc(e.medicamento)}</td><td>${esc(e.quantidade)} ${esc(String(e.unidade || "").toLowerCase())}</td>
+    <td>${esc(sit(e))}</td><td class="val">${brl(e.valor_total)}</td><td>${avisoCel(e.aviso)}</td><td>${btnExcluir("meds", e.id)}</td></tr>`).join("")
+    : vazio(8, "Nenhum medicamento registrado ainda.");
+  /* Internações */
+  $("[data-rows=int]").innerHTML = state.ints.length ? state.ints.map(e => `<tr${e.aviso ? ' class="warn"' : ""}>
+    <td>${esc(e.prontuario)}</td><td>${esc(e.aih)}</td><td>${esc(e.tipo_aih)}</td><td>${dataBR(e.data_entrada)}</td><td>${dataBR(e.data_alta)}</td><td>${esc(e.motivo_saida)}</td>
+    <td>${e.n_procedimentos}</td><td>${avisoCel(e.aviso)}</td><td>${btnExcluir("ints", e.id)}</td></tr>`).join("")
+    : vazio(9, "Nenhuma internação cadastrada ainda.");
+  renderRevisao();
+  /* Contadores */
+  const nAv = state.procs.filter(e => e.aviso).length + state.meds.filter(e => e.aviso).length + state.ints.filter(e => e.aviso).length;
+  $("#nav-badge").textContent = nAv || "";
+  $("#sh-proc").textContent = `${state.procs.length} entradas`;
+  $("#sh-int").textContent = `${state.ints.length} AIH`;
+  $("#sh-med").textContent = `${state.meds.length} entradas`;
+  renderRascunhos();
+}
+
+function renderRevisao(){
+  const L = linhasRevisao();
+  /* opções dos filtros */
+  const keep = id => $("#" + id).value;
+  const opts = (id, rot, vals) => { const v = keep(id); $("#" + id).innerHTML = `<option value="">${rot}</option>` + vals.map(x => `<option value="${esc(x[0])}">${esc(x[1])}</option>`).join(""); $("#" + id).value = v; };
+  opts("fl-pac", "Paciente", [...new Set(L.map(l => l.pac))].filter(Boolean).sort().map(x => [x, x]));
+  opts("fl-mes", "Mês", [...new Set(L.map(l => (l.data || "").slice(0, 7)).filter(m => /^\d{4}-\d{2}$/.test(m)))].sort().map(m => [m, m.split("-").reverse().join("/")]));
+  opts("fl-aih", "AIH", state.ints.map(i => [i.aih, `${i.aih} · ${i.prontuario}`]));
+  /* filtro */
+  const f = { pac: keep("fl-pac"), tipo: keep("fl-tipo"), mes: keep("fl-mes"), aih: keep("fl-aih"), sit: keep("fl-sit"), av: $("#fl-aviso").checked };
+  const vis = L.filter(l => (!f.pac || l.pac === f.pac) && (!f.tipo || l.tipo === f.tipo) && (!f.mes || (l.data || "").startsWith(f.mes))
+    && (!f.aih || l.e.aih_do_periodo === f.aih || l.e.aih === f.aih) && (!f.sit || (l.e.situacao?.length ? l.e.situacao.includes(f.sit) : f.sit === "N")) && (!f.av || l.aviso));
+  $("[data-rows=rev]").innerHTML = vis.length ? vis.map(l => `<tr${l.aviso ? ' class="warn"' : ""}>
+    <td>${esc(l.pac)}</td><td>${dataBR(l.data)}</td><td class="mono">${esc(l.cod)}</td><td class="wrap">${esc(l.desc)}</td><td>${esc(l.local)}</td>
+    <td>${esc(sit(l.e))}</td><td class="val" title="${l.tipo === "proc" ? "Valor de tabela: SA quando houver, senão total hospitalar, × quantidade (sem regras)" : "Mediana do BPS × quantidade (sem regras)"}">${brl(l.valor)}</td>
+    <td>${avisoCel(l.aviso)}</td><td>${btnExcluir(l.tipo === "proc" ? "procs" : "meds", l.e.id)}</td></tr>`).join("")
+    : vazio(9, L.length ? "Nenhuma entrada com estes filtros." : "Nenhuma entrada registrada ainda.");
+  /* estatísticas */
+  $("#st-pac").textContent = new Set(L.map(l => l.pac)).size;
+  $("#st-ent").textContent = L.length + state.ints.length;
+  $("#st-av").textContent = L.filter(l => l.aviso).length + state.ints.filter(i => i.aviso).length;
+  $("#st-tot").textContent = brl(L.reduce((s, l) => s + (l.valor || 0), 0));
+}
+["fl-pac","fl-tipo","fl-mes","fl-aih","fl-sit","fl-aviso"].forEach(id => $("#" + id).addEventListener("change", renderRevisao));
+
+$("#rev-recalc").addEventListener("click", async () => {
+  if (!state.projeto) { toast("Crie o projeto primeiro.", true); return; }
+  state.projeto.comp_sigtap = $("#rev-comp").value;
+  state.projeto.base_bps = $("#rev-bps").value;
+  await Promise.all([carregarSigtap(compAtual()), carregarBPS(bpsAtual())]);
+  recalcular(); salvarLocal(); aplicarProjetoNoFormulario(); renderTudo();
+  const faltam = state.procs.filter(e => e.aviso.startsWith("Código não existe")).length;
+  toast(faltam ? `Recalculado. ${faltam} código(s) não existem em ${compAtual()}.` : `Projeto recalculado com SIGTAP ${compAtual()} e BPS ${bpsAtual()}.`);
+});
+
+/* Excluir (dois cliques) */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-del]");
+  if (!b) return;
+  if (!b.dataset.conf) { b.dataset.conf = "1"; b.textContent = "Confirmar"; b.classList.add("danger"); setTimeout(() => { if (b.isConnected) { delete b.dataset.conf; b.textContent = "Excluir"; b.classList.remove("danger"); } }, 3000); return; }
+  const [lista, id] = b.dataset.del.split(":");
+  state[lista] = state[lista].filter(x => x.id !== id);
+  recalcular(); salvarLocal(); renderTudo();
+  toast("Entrada excluída.");
+});
+
+/* =====================================================================
+   RASCUNHO
+   ===================================================================== */
+function renderRascunhos(){
+  const box = $("#rascunhos");
+  const p = state.projeto;
+  if (!p) { box.innerHTML = `<div class="empty">Nenhum rascunho salvo neste navegador.</div>`; return; }
+  const n = state.procs.length + state.ints.length + state.meds.length;
+  const quando = state.atualizado ? new Date(state.atualizado).toLocaleString("pt-BR") : "—";
+  box.innerHTML = `<div class="panel"><div class="body draft">
+    <span class="fic" style="width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center">✎</span>
+    <div><b>${esc(p.titulo)}</b><small>Última alteração: ${quando} · ${n} entradas · usuário: ${esc(p.usuario)}</small></div>
+    <button class="btn" id="rasc-excluir">Excluir</button><button class="btn pri" data-v="procedimentos">Continuar</button>
+  </div></div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("#rasc-excluir");
+  if (!b) return;
+  if (!b.dataset.conf) { b.dataset.conf = "1"; b.textContent = "Confirmar exclusão"; b.classList.add("danger"); return; }
+  state = { projeto: null, procs: [], ints: [], meds: [], atualizado: null };
+  try { localStorage.removeItem(LS_KEY); } catch(err){}
+  const v = $("#v-projeto"); $$("[data-k]", v).forEach(el => { if (el.type === "checkbox") el.checked = false; else if (!el.classList.contains("seg")) el.value = ""; });
+  aplicarProjetoNoFormulario(); renderTudo();
+  toast("Rascunho excluído.");
+});
+
+/* =====================================================================
+   EXPORTAR .xlsx
+   ===================================================================== */
+const COLS = {
+  proc: ["id","usuario","prontuario","codigo_paciente","origem_dado","data_realizacao","data_pedido","co_procedimento","no_procedimento","classificacao","quantidade","local_ato","aih_do_periodo","aih","tipo_aih","ordem_aih","rt_inicio","rt_fim","rt_sessoes","situacao","doc","observacao_usuario","competencia","vl_sa","vl_sh","vl_sp","vl_tot_hosp","valor_tabela","aviso","criado_em"],
+  int:  ["id","usuario","prontuario","aih","tipo_aih","data_entrada","data_alta","motivo_saida","observacao_usuario","n_procedimentos","aviso","criado_em"],
+  med:  ["id","usuario","prontuario","codigo_paciente","origem_dado","data_retirada","data_receita","codigo_catmat","medicamento","unidade","quantidade","uf","municipio","situacao","doc","observacao_usuario","base_bps","nivel_preco","n_compras","periodo_bps","valor_unitario","valor_total","aviso","criado_em"]
+};
+function linhasPara(lista, cols, semPront){
+  return lista.map(e => Object.fromEntries(cols.filter(c => !(semPront && c === "prontuario")).map(c => [c, Array.isArray(e[c]) ? (e[c].length ? e[c].join("; ") : "N") : (e[c] ?? "")])));
+}
+$("#exp-baixar").addEventListener("click", () => {
+  if (typeof XLSX === "undefined") { toast("A biblioteca de planilhas não carregou. Verifique a internet e recarregue a página.", true); return; }
+  if (!state.projeto) { toast("Crie o projeto primeiro.", true); return; }
+  const semPront = $("#exp-versao button.on")?.textContent.includes("Sem");
+  const wb = XLSX.utils.book_new();
+  const add = (nome, linhas, cols) => XLSX.utils.book_append_sheet(wb, linhas.length ? XLSX.utils.json_to_sheet(linhas) : XLSX.utils.aoa_to_sheet([cols]), nome);
+  add("Procedimentos", linhasPara(state.procs, COLS.proc, semPront), COLS.proc);
+  add("Internações", linhasPara(state.ints, COLS.int, semPront), COLS.int);
+  add("Medicamentos", linhasPara(state.meds, COLS.med, semPront), COLS.med);
+  /* Resumo por paciente */
+  const pacs = [...new Set([...state.procs, ...state.meds, ...state.ints].map(e => e.prontuario))].sort();
+  const resumo = pacs.map((pr, i) => {
+    const P = state.procs.filter(e => e.prontuario === pr), M = state.meds.filter(e => e.prontuario === pr);
+    const cod = (P[0] || M[0])?.codigo_paciente || "";
+    const tp = P.reduce((s, e) => s + (e.valor_tabela || 0), 0), tm = M.reduce((s, e) => s + (e.valor_total || 0), 0);
+    return { ...(semPront ? { paciente: cod || `Paciente ${i + 1}` } : { prontuario: pr, codigo_paciente: cod }), n_registros: P.length + M.length,
+      total_procedimentos_tabela: +tp.toFixed(2), total_medicamentos: +tm.toFixed(2), total_geral_sem_regras: +(tp + tm).toFixed(2) };
+  });
+  add("Resumo", resumo, ["prontuario","n_registros","total_geral_sem_regras"]);
+  const avisos = [...state.procs.map(e => ({ aba: "Procedimentos", id: e.id, item: e.co_procedimento, aviso: e.aviso })),
+                  ...state.ints.map(e => ({ aba: "Internações", id: e.id, item: e.aih, aviso: e.aviso })),
+                  ...state.meds.map(e => ({ aba: "Medicamentos", id: e.id, item: e.codigo_catmat, aviso: e.aviso }))].filter(a => a.aviso);
+  add("Avisos", avisos, ["aba","id","item","aviso"]);
+  const lim = [...state.procs.filter(e => e.valor_tabela == null).map(e => ({ aba: "Procedimentos", id: e.id, item: e.co_procedimento, motivo: e.aviso || "Sem valor" })),
+               ...state.meds.filter(e => e.valor_total == null).map(e => ({ aba: "Medicamentos", id: e.id, item: e.codigo_catmat, motivo: e.aviso || "Sem preço" }))];
+  add("Limitações", lim, ["aba","id","item","motivo"]);
+  const params = Object.entries(state.projeto).map(([chave, valor]) => ({ chave, valor: typeof valor === "boolean" ? (valor ? "Sim" : "Não") : valor }));
+  params.push({ chave: "versao_site", valor: CONFIG.versaoSite }, { chave: "exportado_em", valor: new Date().toISOString() }, { chave: "versao_arquivo", valor: semPront ? "Sem prontuário" : "Completa" });
+  add("Parâmetros", params, ["chave","valor"]);
+  XLSX.writeFile(wb, $("#exp-nome").textContent);
+  toast("Planilha gerada.");
+});
+
+/* =====================================================================
+   ABRIR .xlsx EXPORTADO
+   ===================================================================== */
+let importado = null;
+const abrirFile = $("#abrir-file");
+async function lerPlanilha(file){
+  if (typeof XLSX === "undefined") { toast("A biblioteca de planilhas não carregou. Verifique a internet e recarregue a página.", true); return; }
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const aba = n => wb.Sheets[n] ? XLSX.utils.sheet_to_json(wb.Sheets[n], { defval: "", raw: false }) : null;
+    const par = aba("Parâmetros");
+    if (!par) throw new Error("o arquivo não tem a aba Parâmetros");
+    const projeto = {};
+    par.forEach(r => { if (!["versao_site","exportado_em","versao_arquivo"].includes(r.chave)) projeto[r.chave] = r.valor === "Sim" ? true : r.valor === "Não" ? false : r.valor; });
+    const sitArr = r => { r.situacao = r.situacao && r.situacao !== "N" ? String(r.situacao).split(/;\s*/) : []; return r; };
+    importado = { projeto, procs: (aba("Procedimentos") || []).map(sitArr), ints: aba("Internações") || [], meds: (aba("Medicamentos") || []).map(sitArr) };
+    const semPront = par.find(r => r.chave === "versao_arquivo")?.valor === "Sem prontuário";
+    const exp = par.find(r => r.chave === "exportado_em")?.valor;
+    $("#abrir-nome").textContent = file.name;
+    $("#abrir-meta").textContent = `Exportado em ${exp ? new Date(exp).toLocaleString("pt-BR") : "—"} · por ${projeto.usuario || "—"}`;
+    $("#abrir-status").textContent = semPront ? "Versão sem prontuário" : "Arquivo válido";
+    $("#abrir-status").classList.toggle("w", semPront);
+    $("#abrir-pac").textContent = new Set([...importado.procs, ...importado.meds].map(e => e.prontuario)).size;
+    $("#abrir-proc").textContent = importado.procs.length;
+    $("#abrir-int").textContent = importado.ints.length;
+    $("#abrir-med").textContent = importado.meds.length;
+    $("#abrir-info").textContent = `ℹ Competência SIGTAP do arquivo: ${projeto.comp_sigtap || "—"} · Base do BPS: ${projeto.base_bps || "—"}. Abrir substitui o rascunho atual deste navegador.`;
+    $("#abrir-pick").classList.add("hidden"); $("#abrir-res").classList.remove("hidden");
+  } catch(err){ toast("Não foi possível ler o arquivo: " + err.message, true); }
+}
+abrirFile.addEventListener("change", () => { if (abrirFile.files[0]) lerPlanilha(abrirFile.files[0]); abrirFile.value = ""; });
+const drop = $("[data-pick=abrir]");
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files[0]) lerPlanilha(e.dataTransfer.files[0]); });
+$("#abrir-ok").addEventListener("click", async () => {
+  if (!importado) return;
+  ["procs","ints","meds"].forEach(k => importado[k].forEach(e => { if (!e.id) e.id = uid(); }));
+  state = { ...importado, atualizado: null };
+  importado = null;
+  await Promise.all([carregarSigtap(compAtual()), carregarBPS(bpsAtual())]);
+  recalcular(); salvarLocal(); aplicarProjetoNoFormulario(); renderTudo();
+  $("#abrir-res").classList.add("hidden"); $("#abrir-pick").classList.remove("hidden");
+  toast("Projeto aberto e recalculado.");
+  show("revisao");
+});
+
+/* =====================================================================
+   NAVEGAÇÃO E INTERAÇÕES GERAIS
+   ===================================================================== */
 document.querySelectorAll("[data-sub]").forEach(el => {
   el.innerHTML = [["procedimentos","Procedimentos"],["internacoes","Internações"],["medicamentos","Medicamentos"]]
     .map(([v,t]) => `<button data-v="${v}">${t}</button>`).join("");
 });
-
-const edit = '<button class="btn sm">Editar</button>';
-const row = (cells, warn) => `<tr${warn ? ' class="warn"' : ""}>` + cells.map(c => `<td${c.startsWith("R$") ? ' class="val" title="Regra aplicada"' : ' class="ph"'}>${c}</td>`).join("")
-  + `<td>${warn ? '<span class="dot"></span>' + warn : '<span class="ok">—</span>'}</td><td>${edit}</td></tr>`;
-const fill = (k, n, cols, warnAt) => {
-  const body = document.querySelector(`[data-rows="${k}"]`); if (!body) return;
-  body.innerHTML = Array.from({length:n}, (_, i) => row(Array(cols).fill("—").map((c,j) => j === cols-1 ? "R$ —" : (j === cols-2 ? "N" : c)), warnAt[i])).join("");
-};
-fill("proc", 5, 6, {1:"Possível duplicata", 3:"Fora de internação"});
-fill("med", 5, 6, {2:"Sem registro de preço"});
-fill("rev", 6, 7, {1:"Possível duplicata", 3:"Fora de internação", 4:"Sem registro de preço"});
-
 const SAVE_WARN = `<div class="alert save-warn"><span>⚠</span><div><span class="t">Os rascunhos ficam guardados só neste navegador, neste computador.</span>Eles <b>serão apagados e não poderão ser recuperados</b> se você limpar o histórico, os cookies ou os "dados de sites" do navegador, usar uma janela anônima ou privada, ou abrir o site em outro navegador ou computador. Para não perder o trabalho, exporte o .xlsx ao final de cada sessão.</div></div>`;
 document.querySelectorAll(".view").forEach(v => v.insertAdjacentHTML("beforeend", SAVE_WARN));
 
-/* ---------- Navegação ---------- */
 function show(v){
   const target = document.getElementById("v-" + v) ? v : "inicio";
   document.querySelectorAll(".view").forEach(s => s.classList.toggle("on", s.id === "v-" + target));
@@ -753,14 +1503,27 @@ document.addEventListener("click", e => {
   const tag = e.target.closest(".tag");
   if (tag) { tag.classList.toggle("on"); return; }
 
-  const pick = e.target.closest("[data-pick]");
-  if (pick) { pick.closest(".panel").classList.add("hidden"); document.getElementById(pick.dataset.pick + "-res").classList.remove("hidden"); return; }
+  if (e.target.closest("[data-pick=abrir]")) { abrirFile.click(); return; }
+  const demo = e.target.closest("[data-demo]");
+  if (demo) { demo.closest(".panel").classList.add("hidden"); document.getElementById(demo.dataset.demo + "-res").classList.remove("hidden"); return; }
 
   const reset = e.target.closest("[data-reset]");
   if (reset) {
     const k = reset.dataset.reset;
     document.getElementById(k + "-res").classList.add("hidden");
-    document.querySelector(`[data-pick="${k}"]`).closest(".panel").classList.remove("hidden");
+    (k === "abrir" ? $("#abrir-pick") : $(`[data-demo="${k}"]`).closest(".panel")).classList.remove("hidden");
+    if (k === "abrir") importado = null;
+    return;
+  }
+
+  const lim = e.target.closest("[data-limpar]");
+  if (lim) {
+    const v = lim.closest(".view");
+    $$("input[data-lock]", v).forEach(c => { c.checked = !!c.defaultChecked; c.disabled = false; });
+    $$(".f", v).forEach(f => { if (f.querySelector("[data-lock]")) syncLocks(f); });
+    limpar(v);
+    if (v.id === "v-procedimentos") { selProc = null; procBusca.value = ""; procBusca.dataset.escolhido = ""; renderProcInfo(); atualizarLocal(); }
+    if (v.id === "v-medicamentos") { selMed = null; medBusca.value = ""; medBusca.dataset.escolhido = ""; renderMedInfo(); }
   }
 });
 
@@ -779,17 +1542,27 @@ function syncGroup(g){
 document.querySelectorAll(".checks").forEach(syncGroup);
 document.addEventListener("change", e => {
   if (!e.target.matches("[data-lock]")) return;
+  aplicarTrava(e.target);
   const g = e.target.closest(".checks"); if (g) syncGroup(g);
   syncLocks(e.target.closest(".f"));
 });
-
-show((location.hash || "#inicio").slice(1));
 
 document.getElementById("theme").onclick = () => {
   const r = document.documentElement;
   const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   r.dataset.theme = dark ? "light" : "dark";
 };
+
+/* =====================================================================
+   INÍCIO
+   ===================================================================== */
+const salvo = lerLocal();
+if (salvo) state = { projeto: salvo.projeto || null, procs: salvo.procs || [], ints: salvo.ints || [], meds: salvo.meds || [], atualizado: salvo.atualizado || null };
+renderSituacoes();
+aplicarProjetoNoFormulario();
+renderTudo();
+show((location.hash || "#inicio").slice(1));
+carregarTudo();
 </script>
 </body>
 </html>
